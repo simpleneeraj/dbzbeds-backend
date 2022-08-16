@@ -15,26 +15,35 @@ import { model, Schema } from "mongoose"
 // },
 
 const bedVarientSchema = new Schema({
-    price: {
-        type: String,
-        required: true,
-    },
-    size: {
-        type: String,
-        required: true,
-    },
-
+    size:
+    {
+        name: {
+            type: String,
+            required: true,
+        },
+        image: {
+            type: String,
+            required: true,
+        },
+        price: {
+            type: String,
+            required: true,
+        },
+    }
+    ,
     accessories: {
-        color: [{
-            name: {
-                type: String,
-                required: true,
-            },
-            image: {
-                type: String,
-                required: true,
-            },
-        }],
+        color: [
+            {
+                name: {
+                    type: String,
+                    required: true,
+                },
+                image: {
+                    type: String,
+                    required: true,
+                },
+            }
+        ],
 
         headboard: [{
             name: {
@@ -45,6 +54,11 @@ const bedVarientSchema = new Schema({
                 type: String,
                 required: true,
             },
+            // image: {
+            //     type: String,
+            //     required: true,
+            // },
+
 
         }],
         storage: [{
@@ -56,6 +70,10 @@ const bedVarientSchema = new Schema({
                 type: String,
                 required: true,
             },
+            // image: {
+            //     type: String,
+            //     required: true,
+            // },
 
         }],
         feet: [{
@@ -67,6 +85,10 @@ const bedVarientSchema = new Schema({
                 type: String,
                 required: true,
             },
+            // image: {
+            //     type: String,
+            //     required: true,
+            // },
 
         }],
         mattress: [{
@@ -78,6 +100,10 @@ const bedVarientSchema = new Schema({
                 type: String,
                 required: true,
             },
+            // image: {
+            //     type: String,
+            //     required: true,
+            // },
         }],
     }
 }, {
