@@ -2,46 +2,49 @@ import path from "path";
 import sharp from "sharp";
 import fs, { PathLike } from "fs";
 import { Request, Response } from "express";
-import bedsVariants from "../models/bedsVariants";
 
-export const updateAvatar = async (req: Request, res: Response, color: string) => {
-
-    const { id } = req.params
+export const uploadBedImage = async (req: Request, res: Response, color: string) => {
     try {
-
         const time = new Date().getTime();
-        const fileName = color + "-avatar-" + time + ".jpg";
-        let compressImagePath = path.join(
-            __dirname,
-            "../",
-            "upload",
-            "beds",
-            fileName
-        );
+        const fileName = color + "-beds-" + time + ".webp";
 
-        if (req?.file?.path) {
-            sharp(req.file?.path)
-                // .resize(200, 200)
-                .jpeg({ quality: 80 })
-                .toFile(compressImagePath, async (err) => {
-                    if (err) {
-                        fs.unlinkSync(req.file?.path as PathLike);
-                        res.json({ success: false, message: err });
-                    } else {
-                        fs.unlinkSync(req.file?.path as PathLike);
 
-                        await bedsVariants.findByIdAndUpdate(id, {
-                            $set: {
-                                avatar: `${process.env.BASE_URL}/user-avatar/${fileName}`,
-                            },
-                        });
-                    }
-                });
-            return {
-                success: true,
-                message: "avatar uploaded successfully",
-                url: `${process.env.BASE_URL}/user-avatar/${fileName}`,
-            };
+        if (req?.file) {
+
+            let compressImagePath = path.join(
+                __dirname,
+                "../",
+                "uploads",
+                "beds",
+                fileName
+            );
+
+            try {
+                sharp(req.file?.path)
+                    .resize(1920, 1080, {
+                        fit: 'cover',
+                    })
+                    .webp({ quality: 70 })
+                    .toFile(compressImagePath, async (err) => {
+                        if (err) {
+                            fs.unlinkSync(req.file?.path as PathLike);
+                            res.json({ success: false, message: err });
+                        } else {
+                            console.log("running");
+                            fs.unlinkSync(req.file?.path as PathLike);
+                        }
+                    })
+
+                return {
+                    success: true,
+                    message: "Image uploaded successfully",
+                    url: `${process.env.BASE_URL}/beds-image/${fileName}`,
+                };
+
+            } catch (error) {
+                res.status(500).send(error)
+            }
+
         } else {
             return {
                 success: false,

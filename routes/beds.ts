@@ -1,4 +1,6 @@
 import { Router } from "express";
+import upload from "../config/multer";
+import { uploadBedImage } from "../controller";
 import beds from "../models/beds";
 import bedsVariants from "../models/bedsVariants";
 
@@ -6,11 +8,23 @@ const router = Router();
 
 // GET INITIAL DATA 
 router.get("/", async (req, res) => {
+    let { page = 1, limit = 8 } = req.query;
+
+    page = Number(page);
+    limit = limit > 50 ? 50 : Number(limit);
+
     try {
-        const getAllBeds = await beds.find({}).populate("variants");
+        const getAllBeds = await beds.find({}).sort({ createdAt: -1 }).limit(limit).skip(limit * (page - 1)).lean();
+
+        //Get Total Pages
+
+        const totalBedsCount = await beds.countDocuments({});
+        const pages = Math.ceil(Number(totalBedsCount) / Number(limit));
 
         res.json({
-            data: getAllBeds
+            data: getAllBeds,
+            totalPages: pages,
+            nextPage: page < pages ? page + 1 : null
         })
     } catch (error: any) {
         res.status(500).send(error)
@@ -20,11 +34,26 @@ router.get("/", async (req, res) => {
 // GET BED BY ID
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
+    const { size } = req.query;
+
     try {
-        const getAllBeds = await beds.findOne({ _id: id }).populate("variants");
-        res.json({
-            data: getAllBeds
-        })
+        if (size) {
+            const getCurrentSizeBed = await beds.findOne({ _id: id }).populate({
+                path: "variants",
+                match: {
+                    size
+                }
+            });
+            res.send(
+                getCurrentSizeBed
+            )
+
+        } else {
+            const getAllBeds = await beds.findOne({ _id: id }).populate("variants");
+            res.json(
+                getAllBeds
+            )
+        }
     } catch (error: any) {
         res.status(500).send(error)
     }
@@ -76,19 +105,18 @@ router.post("/add-bed/:id", async (req, res) => {
 })
 
 
-
-// DELETE BED BY ID
-router.delete("/delete-bed/:id", async (req, res) => {
-    const { id } = req.params;
+//Upload image
+router.post("/upload-image", upload.single("image"), async (req, res) => {
     try {
-        const deletedBed = await beds.deleteOne({ _id: id })
-        res.json({
-            data: deletedBed
-        })
-    } catch (error: any) {
-        res.status(500).send(error)
+        const imageUploadUrl = await uploadBedImage(req, res, "red");
+        res.send(imageUploadUrl)
+    } catch (error) {
+        res.status(500).send(error);
     }
 })
+
+
+
 // UPDATE BED BY ID
 router.patch("/update-bed/:id", async (req, res) => {
     const { id } = req.params;
@@ -110,6 +138,22 @@ router.patch("/update-bed/:id", async (req, res) => {
         res.status(500).send(error)
     }
 })
+
+// DELETE BED BY ID
+router.delete("/delete-bed/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+        const deletedBed = await beds.deleteOne({ _id: id })
+        res.json({
+            data: deletedBed
+        })
+    } catch (error: any) {
+        res.status(500).send(error)
+    }
+})
+
+export default router;
+
 
 /**
  * FOR IMAGE API
@@ -147,7 +191,3 @@ router.patch("/update-bed/:id", async (req, res) => {
 //       bodyParser: false,
 //     },
 //   };
-
-export default router;
-
-

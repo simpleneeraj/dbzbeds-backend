@@ -1,7 +1,4 @@
 import { model, Schema } from "mongoose"
-
-
-
 // quantity: 1,
 // price: 98.9,
 // size: 3,
@@ -15,22 +12,25 @@ import { model, Schema } from "mongoose"
 // },
 
 const bedVarientSchema = new Schema({
-    size:
-    {
-        name: {
+
+    size: {
+        type: String,
+        required: true,
+    },
+    image: {
+        type: String,
+        required: true,
+    },
+    price: {
+        basePrice: {
+            type: String,
+            required: true
+        },
+        salePrice: {
             type: String,
             required: true,
-        },
-        image: {
-            type: String,
-            required: true,
-        },
-        price: {
-            type: String,
-            required: true,
-        },
-    }
-    ,
+        }
+    },
     accessories: {
         color: [
             {
