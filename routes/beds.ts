@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { isValidObjectId } from "mongoose";
 import upload from "../config/multer";
 import { uploadBedImage } from "../controller";
 import beds from "../models/beds";
@@ -6,6 +7,31 @@ import bedsVariants from "../models/bedsVariants";
 
 const router = Router();
 
+//GET BED VARIANT BY ID
+router.get("/get-bed-variant/:id", async (req, res) => {
+
+    console.log("running bed");
+    try {
+        const { id } = req.params;
+
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ message: "Invalid ID provided." })
+        }
+
+        const getBedVariant = await bedsVariants.findById(id);
+
+        if (!getBedVariant) {
+            return res.status(400).json({ message: "Invalid ID provided." })
+        }
+
+
+        res.status(200).json(getBedVariant);
+
+    } catch (error) {
+        res.status(500).send(error);
+    }
+
+})
 // GET INITIAL DATA 
 router.get("/", async (req, res) => {
     let { page = 1, limit = 8 } = req.query;
@@ -81,12 +107,31 @@ router.post("/create", async (req, res) => {
 //ADD/CREATE BED VARIANTS
 router.post("/add-bed/:id", async (req, res) => {
     const { id } = req.params;
-    const { color, storage, headboard, feet, mattress } = req.body;
-    const bedFind = await beds.findOne({ _id: id });
+
+
+    if (!isValidObjectId(id)) {
+        return res.status(400).json({ message: "Invalid ID provided." })
+    }
+
+    if (!req.body?.size) {
+        return res.status(400).json({ message: "Bed Size cannot be empty." })
+    }
+
+    const bedFind = await beds.findOne({ _id: id }).populate("variants", "size").lean();
 
     if (!bedFind) {
-        return res.status(404).json({ message: "Invalid ID provided." })
+        return res.status(400).json({ message: "Invalid ID provided." })
     }
+
+    //CHECKING FOR DUPLICATE BED SIZES (START)
+    const bedVariants = bedFind && bedFind.variants || [];
+
+    const findDuplicateBedSize = bedVariants.find((variant: any) => variant.size == req.body.size)
+
+    if (findDuplicateBedSize) {
+        return res.status(400).json({ message: "Size Already Exists" })
+    }
+    //CHECKING FOR DUPLICATE BED SIZES (END)
 
     bedsVariants.create(req.body, async (err: any, data: any) => {
         if (err) {
@@ -103,6 +148,36 @@ router.post("/add-bed/:id", async (req, res) => {
         })
     });
 })
+
+//UPDATE BED VARIANTS
+router.patch("/update-bed/:id", async (req, res) => {
+    const { id } = req.params;
+    const { size, image, price, accessories } = req.body;
+
+    if (!isValidObjectId(id)) {
+        return res.status(400).json({ message: "Invalid ID provided." })
+    }
+
+    const findBedVarient = bedsVariants.findById(id);
+
+    if (!findBedVarient) {
+        return res.status(400).json({ message: "Invalid ID provided." })
+    }
+
+
+    const updatedBed = await bedsVariants.findByIdAndUpdate(id, {
+        size,
+        image,
+        price,
+        accessories
+    }, {
+        new: true
+    })
+
+    res.status(200).json({ message: "Bed Variant Updated Succesfully", data: updatedBed })
+})
+
+
 
 
 //Upload image

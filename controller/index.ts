@@ -48,7 +48,7 @@ export const uploadBedImage = async (req: Request, res: Response, color: string)
         } else {
             return {
                 success: false,
-                message: "no file uploaded",
+                message: "no file provided",
             };
         }
     } catch (error: any) {

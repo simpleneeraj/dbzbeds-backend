@@ -23,11 +23,11 @@ const bedVarientSchema = new Schema({
     },
     price: {
         basePrice: {
-            type: String,
+            type: Number,
             required: true
         },
         salePrice: {
-            type: String,
+            type: Number,
             required: true,
         }
     },
