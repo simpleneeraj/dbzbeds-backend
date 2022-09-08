@@ -41,7 +41,8 @@ router.get("/", async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip(limit * (page - 1))
-      .lean();
+      .lean()
+      .populate("variants");
 
     //Get Total Pages
 
