@@ -18,7 +18,6 @@ const bedSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "bedsVariants"
     }],
-
 }, {
     timestamps: true
 })
