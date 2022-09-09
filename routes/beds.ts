@@ -42,7 +42,6 @@ router.get("/", async (req, res) => {
       .limit(limit)
       .skip(limit * (page - 1))
       .lean()
-      .populate("variants");
 
     //Get Total Pages
 
@@ -59,6 +58,55 @@ router.get("/", async (req, res) => {
   }
 });
 
+
+router.get("/get-all-beds-with-base-image", async (req, res) => {
+  const { page = 1, limit = 20 } = req.query;
+
+  try {
+
+    const bedsWithBaseImage = await beds.find({ "variants.0": { $exists: true } }).populate({
+      path: "variants",
+      select: "_id accessories.color size price image",
+      perDocumentLimit: 1
+    }).sort({ createdAt: -1 })
+      .limit(Number(limit))
+      .skip(Number(limit) * (Number(page) - 1))
+      .lean() as any;
+
+    bedsWithBaseImage.map((bed: any) => {
+      if (bed && bed?.variants[0]?.image) {
+        bed.image = bed?.variants[0]?.image
+        bed.price = bed?.variants[0]?.price
+
+
+
+      }
+    })
+
+
+
+
+
+    //Get Total Pages
+
+    const totalBedsCount = await beds.countDocuments({ "variants.0": { $exists: true } });
+    const pages = Math.ceil(Number(totalBedsCount) / Number(limit));
+
+    res.json({
+      data: bedsWithBaseImage,
+      totalPages: pages,
+      nextPage: Number(page) < pages ? Number(page) + 1 : null,
+    });
+
+
+
+  } catch (error) {
+    res.status(500).send(error)
+
+  }
+
+})
+
 // GET BED BY ID
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
@@ -71,7 +119,15 @@ router.get("/:id", async (req, res) => {
         match: {
           size,
         },
-      });
+      }).lean() as any;
+
+      const getAllbedSizes = await beds.findOne({ _id: id }, { variants: 1, _id: 0 }).populate({
+        path: "variants",
+        select: "size -_id"
+      }).lean() as any;
+
+      getCurrentSizeBed.availabeSizes = getAllbedSizes.variants.map((size) => size?.size)
+
       res.send(getCurrentSizeBed);
     } else {
       const getAllBeds = await beds.findOne({ _id: id }).populate("variants");
@@ -236,7 +292,7 @@ router.delete("/delete-bed/:id", async (req, res) => {
   }
 });
 
-// DELETE BED BY ID
+// DELETE VARIANT BY ID
 router.delete("/delete-bed-variant/:id", async (req, res) => {
   const { id } = req.params;
   try {
