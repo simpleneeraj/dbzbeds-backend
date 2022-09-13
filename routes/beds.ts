@@ -9,301 +9,345 @@ const router = Router();
 
 //GET BED VARIANT BY ID
 router.get("/get-bed-variant/:id", async (req, res) => {
-  console.log("running bed");
-  try {
-    const { id } = req.params;
+    console.log("running bed");
+    try {
+        const { id } = req.params;
 
-    if (!isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid ID provided." });
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ message: "Invalid ID provided." });
+        }
+
+        const getBedVariant = await bedsVariants.findById(id);
+
+        if (!getBedVariant) {
+            return res.status(400).json({ message: "Invalid ID provided." });
+        }
+
+        res.status(200).json(getBedVariant);
+    } catch (error) {
+        res.status(500).send(error);
     }
-
-    const getBedVariant = await bedsVariants.findById(id);
-
-    if (!getBedVariant) {
-      return res.status(400).json({ message: "Invalid ID provided." });
-    }
-
-    res.status(200).json(getBedVariant);
-  } catch (error) {
-    res.status(500).send(error);
-  }
 });
 // GET INITIAL DATA
 router.get("/", async (req, res) => {
-  let { page = 1, limit = 8 } = req.query;
+    let { page = 1, limit = 8 } = req.query;
 
-  page = Number(page);
-  limit = limit > 50 ? 50 : Number(limit);
+    page = Number(page);
+    limit = limit > 50 ? 50 : Number(limit);
 
-  try {
-    const getAllBeds = await beds
-      .find({})
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .skip(limit * (page - 1))
-      .lean()
+    try {
+        const getAllBeds = await beds
+            .find({})
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .skip(limit * (page - 1))
+            .lean();
 
-    //Get Total Pages
+        //Get Total Pages
 
-    const totalBedsCount = await beds.countDocuments({});
-    const pages = Math.ceil(Number(totalBedsCount) / Number(limit));
+        const totalBedsCount = await beds.countDocuments({});
+        const pages = Math.ceil(Number(totalBedsCount) / Number(limit));
 
-    res.json({
-      data: getAllBeds,
-      totalPages: pages,
-      nextPage: page < pages ? page + 1 : null,
-    });
-  } catch (error: any) {
-    res.status(500).send(error);
-  }
+        res.json({
+            data: getAllBeds,
+            totalPages: pages,
+            nextPage: page < pages ? page + 1 : null,
+        });
+    } catch (error: any) {
+        res.status(500).send(error);
+    }
 });
 
-
 router.get("/get-all-beds-with-base-image", async (req, res) => {
-  const { page = 1, limit = 20 } = req.query;
+    const { page = 1, limit = 20 } = req.query;
 
-  try {
+    try {
+        const bedsWithBaseImage = (await beds
+            .find({ "variants.0": { $exists: true } })
+            .populate({
+                path: "variants",
+                select: "_id accessories.color size price image",
+                perDocumentLimit: 1,
+            })
+            .sort({ createdAt: -1 })
+            .limit(Number(limit))
+            .skip(Number(limit) * (Number(page) - 1))
+            .lean()) as any;
 
-    const bedsWithBaseImage = await beds.find({ "variants.0": { $exists: true } }).populate({
-      path: "variants",
-      select: "_id accessories.color size price image",
-      perDocumentLimit: 1
-    }).sort({ createdAt: -1 })
-      .limit(Number(limit))
-      .skip(Number(limit) * (Number(page) - 1))
-      .lean() as any;
+        bedsWithBaseImage.map((bed: any) => {
+            if (bed && bed?.variants[0]?.image) {
+                bed.image = bed?.variants[0]?.image;
+                bed.price = bed?.variants[0]?.price;
+            }
+        });
 
-    bedsWithBaseImage.map((bed: any) => {
-      if (bed && bed?.variants[0]?.image) {
-        bed.image = bed?.variants[0]?.image
-        bed.price = bed?.variants[0]?.price
+        //Get Total Pages
 
+        const totalBedsCount = await beds.countDocuments({
+            "variants.0": { $exists: true },
+        });
+        const pages = Math.ceil(Number(totalBedsCount) / Number(limit));
 
+        res.json({
+            data: bedsWithBaseImage,
+            totalPages: pages,
+            nextPage: Number(page) < pages ? Number(page) + 1 : null,
+        });
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
 
-      }
-    })
+router.get("/get-all-beds-with-base-image-admin", async (req, res) => {
+    const { page = 1, limit = 20 } = req.query;
 
+    try {
+        const bedsWithBaseImage = (await beds
+            .find({})
+            .populate({
+                path: "variants",
+                select: "_id accessories.color size price image",
+                perDocumentLimit: 1,
+            })
+            .sort({ createdAt: -1 })
+            .limit(Number(limit))
+            .skip(Number(limit) * (Number(page) - 1))
+            .lean()) as any;
 
+        bedsWithBaseImage.map((bed: any) => {
+            if (bed && bed?.variants[0]?.image) {
+                bed.image = bed?.variants[0]?.image;
+                bed.price = bed?.variants[0]?.price;
+            }
+        });
 
+        //Get Total Pages
 
+        const totalBedsCount = await beds.countDocuments({
+            "variants.0": { $exists: true },
+        });
+        const pages = Math.ceil(Number(totalBedsCount) / Number(limit));
 
-    //Get Total Pages
-
-    const totalBedsCount = await beds.countDocuments({ "variants.0": { $exists: true } });
-    const pages = Math.ceil(Number(totalBedsCount) / Number(limit));
-
-    res.json({
-      data: bedsWithBaseImage,
-      totalPages: pages,
-      nextPage: Number(page) < pages ? Number(page) + 1 : null,
-    });
-
-
-
-  } catch (error) {
-    res.status(500).send(error)
-
-  }
-
-})
+        res.json({
+            data: bedsWithBaseImage,
+            totalPages: pages,
+            nextPage: Number(page) < pages ? Number(page) + 1 : null,
+        });
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
 
 // GET BED BY ID
 router.get("/:id", async (req, res) => {
-  const { id } = req.params;
-  const { size } = req.query;
+    const { id } = req.params;
+    const { size } = req.query;
 
-  try {
-    if (size) {
-      const getCurrentSizeBed = await beds.findOne({ _id: id }).populate({
-        path: "variants",
-        match: {
-          size,
-        },
-      }).lean() as any;
+    try {
+        if (size) {
+            const getCurrentSizeBed = (await beds
+                .findOne({ _id: id })
+                .populate({
+                    path: "variants",
+                    match: {
+                        size,
+                    },
+                })
+                .lean()) as any;
 
-      const getAllbedSizes = await beds.findOne({ _id: id }, { variants: 1, _id: 0 }).populate({
-        path: "variants",
-        select: "size -_id"
-      }).lean() as any;
+            const getAllbedSizes = (await beds
+                .findOne({ _id: id }, { variants: 1, _id: 0 })
+                .populate({
+                    path: "variants",
+                    select: "size -_id",
+                })
+                .lean()) as any;
 
-      getCurrentSizeBed.availabeSizes = getAllbedSizes.variants.map((size) => size?.size)
+            getCurrentSizeBed.availabeSizes = getAllbedSizes.variants.map(
+                (size: any) => size?.size
+            );
 
-      res.send(getCurrentSizeBed);
-    } else {
-      const getAllBeds = await beds.findOne({ _id: id }).populate("variants");
-      res.json(getAllBeds);
+            res.send(getCurrentSizeBed);
+        } else {
+            const getAllBeds = await beds
+                .findOne({ _id: id })
+                .populate("variants");
+            res.json(getAllBeds);
+        }
+    } catch (error: any) {
+        res.status(500).send(error);
     }
-  } catch (error: any) {
-    res.status(500).send(error);
-  }
 });
 //UPLOAD NEW BED
 
 router.post("/create", async (req, res) => {
-  const { name, description, categories } = req.body;
-  if (!name) {
-    return res.status(404).json({ message: "Product name cannot be empty" });
-  }
-  try {
-    const createBed = await beds.create({
-      name,
-      description,
-      categories: Array.isArray(categories) ? categories : undefined,
-    });
-    res.json({
-      message: "Bed Created Successfully",
-      data: createBed,
-    });
-  } catch (error) {
-    res.status(500).send(error);
-  }
+    const { name, description, categories } = req.body;
+    if (!name) {
+        return res
+            .status(404)
+            .json({ message: "Product name cannot be empty" });
+    }
+    try {
+        const createBed = await beds.create({
+            name,
+            description,
+            categories: Array.isArray(categories) ? categories : undefined,
+        });
+        res.json({
+            message: "Bed Created Successfully",
+            data: createBed,
+        });
+    } catch (error) {
+        res.status(500).send(error);
+    }
 });
 
 //ADD/CREATE BED VARIANTS
 router.post("/add-bed/:id", async (req, res) => {
-  const { id } = req.params;
+    const { id } = req.params;
 
-  if (!isValidObjectId(id)) {
-    return res.status(400).json({ message: "Invalid ID provided." });
-  }
-
-  if (!req.body?.size) {
-    return res.status(400).json({ message: "Bed Size cannot be empty." });
-  }
-
-  const bedFind = await beds
-    .findOne({ _id: id })
-    .populate("variants", "size")
-    .lean();
-
-  if (!bedFind) {
-    return res.status(400).json({ message: "Invalid ID provided." });
-  }
-
-  //CHECKING FOR DUPLICATE BED SIZES (START)
-  const bedVariants = (bedFind && bedFind.variants) || [];
-
-  const findDuplicateBedSize = bedVariants.find(
-    (variant: any) => variant.size == req.body.size
-  );
-
-  if (findDuplicateBedSize) {
-    return res.status(400).json({ message: "Size Already Exists" });
-  }
-  //CHECKING FOR DUPLICATE BED SIZES (END)
-
-  bedsVariants.create(req.body, async (err: any, data: any) => {
-    if (err) {
-      return res.status(500).send(err);
+    if (!isValidObjectId(id)) {
+        return res.status(400).json({ message: "Invalid ID provided." });
     }
-    await beds.findByIdAndUpdate(id, {
-      $push: {
-        variants: data._id,
-      },
+
+    if (!req.body?.size) {
+        return res.status(400).json({ message: "Bed Size cannot be empty." });
+    }
+
+    const bedFind = await beds
+        .findOne({ _id: id })
+        .populate("variants", "size")
+        .lean();
+
+    if (!bedFind) {
+        return res.status(400).json({ message: "Invalid ID provided." });
+    }
+
+    //CHECKING FOR DUPLICATE BED SIZES (START)
+    const bedVariants = (bedFind && bedFind.variants) || [];
+
+    const findDuplicateBedSize = bedVariants.find(
+        (variant: any) => variant.size == req.body.size
+    );
+
+    if (findDuplicateBedSize) {
+        return res.status(400).json({ message: "Size Already Exists" });
+    }
+    //CHECKING FOR DUPLICATE BED SIZES (END)
+
+    bedsVariants.create(req.body, async (err: any, data: any) => {
+        if (err) {
+            return res.status(500).send(err);
+        }
+        await beds.findByIdAndUpdate(id, {
+            $push: {
+                variants: data._id,
+            },
+        });
+        res.status(200).json({
+            message: "Bed Added Successfully",
+            data,
+        });
     });
-    res.status(200).json({
-      message: "Bed Added Successfully",
-      data,
-    });
-  });
 });
 
 //UPDATE BED VARIANTS
 router.patch("/update-bed-variant/:id", async (req, res) => {
-  const { id } = req.params;
-  const { size, image, price, accessories } = req.body;
+    const { id } = req.params;
+    const { size, image, price, accessories } = req.body;
 
-  if (!isValidObjectId(id)) {
-    return res.status(400).json({ message: "Invalid ID provided." });
-  }
-
-  const findBedVarient = bedsVariants.findById(id);
-
-  if (!findBedVarient) {
-    return res.status(400).json({ message: "Invalid ID provided." });
-  }
-
-  const updatedBed = await bedsVariants.findByIdAndUpdate(
-    id,
-    {
-      size,
-      image,
-      price,
-      accessories,
-    },
-    {
-      new: true,
+    if (!isValidObjectId(id)) {
+        return res.status(400).json({ message: "Invalid ID provided." });
     }
-  );
 
-  res
-    .status(200)
-    .json({ message: "Bed Variant Updated Succesfully", data: updatedBed });
+    const findBedVarient = bedsVariants.findById(id);
+
+    if (!findBedVarient) {
+        return res.status(400).json({ message: "Invalid ID provided." });
+    }
+
+    const updatedBed = await bedsVariants.findByIdAndUpdate(
+        id,
+        {
+            size,
+            image,
+            price,
+            accessories,
+        },
+        {
+            new: true,
+        }
+    );
+
+    res.status(200).json({
+        message: "Bed Variant Updated Succesfully",
+        data: updatedBed,
+    });
 });
 
 //Upload image
 router.post("/upload-image", upload.single("image"), async (req, res) => {
-  try {
-    const imageUploadUrl = await uploadBedImage(req, res, "red");
-    res.send(imageUploadUrl);
-  } catch (error) {
-    res.status(500).send(error);
-  }
+    try {
+        const imageUploadUrl = await uploadBedImage(req, res, "red");
+        res.send(imageUploadUrl);
+    } catch (error) {
+        res.status(500).send(error);
+    }
 });
 
 // UPDATE BED BY ID
 router.patch("/update-bed/:id", async (req, res) => {
-  const { id } = req.params;
-  if (!isValidObjectId(id)) {
-    return res.status(400).json({ message: "Invalid ID provided." });
-  }
+    const { id } = req.params;
+    if (!isValidObjectId(id)) {
+        return res.status(400).json({ message: "Invalid ID provided." });
+    }
 
-  try {
-    const updatedData = await beds.findByIdAndUpdate(
-      id,
-      {
-        name: req.body.name,
-        description: req.body.description,
-        categories: Array.isArray(req.body.categories)
-          ? req.body.categories
-          : undefined,
-      },
-      {
-        new: true,
-      }
-    );
-    res.json({ message: "Bed Updated Succesfully", data: updatedData });
-  } catch (error: any) {
-    res.status(500).send(error);
-  }
+    try {
+        const updatedData = await beds.findByIdAndUpdate(
+            id,
+            {
+                name: req.body.name,
+                description: req.body.description,
+                categories: Array.isArray(req.body.categories)
+                    ? req.body.categories
+                    : undefined,
+            },
+            {
+                new: true,
+            }
+        );
+        res.json({ message: "Bed Updated Succesfully", data: updatedData });
+    } catch (error: any) {
+        res.status(500).send(error);
+    }
 });
 
 // DELETE BED BY ID
 router.delete("/delete-bed/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    const deletedBed = await beds.findByIdAndDelete(id);
-    res.json({
-      message: "Bed Deleted Succesfully",
-      data: deletedBed,
-    });
-  } catch (error: any) {
-    res.status(500).send(error);
-  }
+    const { id } = req.params;
+    try {
+        const deletedBed = await beds.findByIdAndDelete(id);
+        res.json({
+            message: "Bed Deleted Succesfully",
+            data: deletedBed,
+        });
+    } catch (error: any) {
+        res.status(500).send(error);
+    }
 });
 
 // DELETE VARIANT BY ID
 router.delete("/delete-bed-variant/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    const deletedBed = await bedsVariants.findByIdAndDelete(id);
-    res.json({
-      message: "Bed Variant Deleted Succesfully",
-      data: deletedBed,
-    });
-  } catch (error: any) {
-    res.status(500).send(error);
-  }
+    const { id } = req.params;
+    try {
+        const deletedBed = await bedsVariants.findByIdAndDelete(id);
+        res.json({
+            message: "Bed Variant Deleted Succesfully",
+            data: deletedBed,
+        });
+    } catch (error: any) {
+        res.status(500).send(error);
+    }
 });
 
 export default router;
