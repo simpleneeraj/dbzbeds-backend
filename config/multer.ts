@@ -2,7 +2,7 @@ import path from "path";
 import { Request } from "express";
 import multer, { FileFilterCallback } from "multer";
 
-const uploadPath = path.join(__dirname, "../", "uploads");
+export const uploadPath = path.join(__dirname, "../", "uploads");
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
