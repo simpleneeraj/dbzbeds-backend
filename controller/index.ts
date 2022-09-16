@@ -65,8 +65,6 @@ export const uploadIcon = async (
     const time = new Date().getTime();
     const fileName = color + "-" + time + ".webp";
 
-    console.log("running");
-
     if (!file) {
         return {
             success: false,
@@ -77,13 +75,13 @@ export const uploadIcon = async (
     let uploadPath = path.join(__dirname, "../", "uploads", "icons", fileName);
 
     try {
-        mkdir(
-            path.join(__dirname, "../", "uploads", "icons"),
-            { recursive: true },
-            (err) => {
+        const folderPath = path.join(__dirname, "../", "uploads", "icons");
+
+        if (!fs.existsSync(folderPath)) {
+            mkdir(folderPath, { recursive: true }, (err) => {
                 if (err) throw err;
-            }
-        );
+            });
+        }
 
         sharp(file.path)
             .resize(150, 150, {

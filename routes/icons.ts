@@ -2,10 +2,11 @@ import { Router } from "express";
 import upload from "../config/multer";
 import { uploadIcon } from "../controller";
 import accessoriesIcons from "../models/accessoriesIcons";
-
-import fs from "fs";
+import { rm } from "fs/promises";
+import { existsSync } from "fs";
 import { isValidObjectId } from "mongoose";
 import path from "path";
+import { resizeIconAndUpload } from "../controller/icon-upload-resizer";
 
 const router = Router();
 
@@ -17,6 +18,7 @@ router.get("/accessories", (req, res) => {
     });
 });
 
+//create icons
 router.post("/accessories", upload.single("image"), async (req, res) => {
     try {
         const { label, value, type } = req.body;
@@ -24,12 +26,11 @@ router.post("/accessories", upload.single("image"), async (req, res) => {
         if (!req.file) {
             return res.status(400).send({
                 success: false,
-                message: "icon is required",
+                message: "IMAGE is required",
             });
         }
 
         if (!label || !value || !type) {
-            fs.unlinkSync(req.file.path);
             return res.status(400).send({
                 success: false,
                 message: "label, value and type are required",
@@ -38,18 +39,18 @@ router.post("/accessories", upload.single("image"), async (req, res) => {
 
         const findDuplicatecolorIcon = await accessoriesIcons.findOne({
             value: value,
-            type: type,
+            type: type, //color ,headboard, size
         });
 
         if (findDuplicatecolorIcon) {
-            fs.unlinkSync(req.file.path);
             return res.status(400).send({
                 success: false,
                 message: "Value already exists & must be unique",
             });
         }
 
-        const getUrl = await uploadIcon(req.file, value);
+        const getUrl = await resizeIconAndUpload(req.file, value);
+
         const accessoriesIcon = new accessoriesIcons({
             label: label,
             value: value,
@@ -62,9 +63,6 @@ router.post("/accessories", upload.single("image"), async (req, res) => {
             res.send(data);
         });
     } catch (error) {
-        if (req.file) {
-            fs.unlinkSync(req.file.path);
-        }
         res.status(500).send(error);
     }
 });
@@ -104,8 +102,9 @@ router.patch("/update/:id", upload.single("image"), async (req, res) => {
 
     if (!id || !isValidObjectId(id)) {
         if (file) {
-            fs.unlinkSync(file.path);
+            await rm(file.path);
         }
+
         return res.status(400).send({
             success: false,
             message: "valid id is required",
@@ -134,22 +133,22 @@ router.patch("/update/:id", upload.single("image"), async (req, res) => {
                         __dirname,
                         `../uploads/icons/${data?.image.split("/").pop()}`
                     );
-                    if (fs.existsSync(pathname)) {
-                        fs.unlinkSync(pathname);
+                    if (existsSync(pathname)) {
+                        rm(pathname);
                     }
                 }
 
                 res.send(data);
             })
-            .catch((err) => {
+            .catch(async (err) => {
                 if (file) {
-                    fs.unlinkSync(file.path);
+                    await rm(file.path);
                 }
                 res.status(500).send(err);
             });
     } catch (error) {
         if (file) {
-            fs.unlinkSync(file.path);
+            await rm(file.path);
         }
         res.status(500).send(error);
     }
