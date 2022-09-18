@@ -58,6 +58,7 @@ router.get("/", async (req, res) => {
     }
 });
 
+// GET ALL BEDS WITH BASE IMAGE
 router.get("/get-all-beds-with-base-image", async (req, res) => {
     const { page = 1, limit = 20 } = req.query;
 
@@ -79,8 +80,8 @@ router.get("/get-all-beds-with-base-image", async (req, res) => {
                 bed.image = bed?.variants[0]?.image;
                 bed.price = bed?.variants[0]?.price;
             }
-        });
-
+        }
+        );
         //Get Total Pages
 
         const totalBedsCount = await beds.countDocuments({
@@ -142,7 +143,6 @@ router.get("/get-all-beds-with-base-image-admin", async (req, res) => {
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
     const { size } = req.query;
-
     try {
         if (size) {
             const getCurrentSizeBed = (await beds
@@ -154,7 +154,6 @@ router.get("/:id", async (req, res) => {
                     },
                 })
                 .lean()) as any;
-
             const getAllbedSizes = (await beds
                 .findOne({ _id: id }, { variants: 1, _id: 0 })
                 .populate({
