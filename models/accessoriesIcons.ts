@@ -5,6 +5,7 @@ interface Accessories extends Document {
     value: string;
     type: string;
     image: string;
+    size: string;
 }
 
 const accessoriesIconSchema = new Schema<Accessories>(
@@ -18,6 +19,10 @@ const accessoriesIconSchema = new Schema<Accessories>(
             required: true,
         },
         image: {
+            type: String,
+            required: true,
+        },
+        size: {
             type: String,
             required: true,
         },

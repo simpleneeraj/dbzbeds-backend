@@ -22,7 +22,7 @@ router.get("/accessories", (req, res) => {
 // CREATE ICON
 router.post("/accessories", upload.single("image"), async (req, res) => {
     try {
-        const { label, value, type } = req.body;
+        const { label, value, type, size } = req.body;
 
         if (!req.file) {
             return res.status(400).send({
@@ -31,16 +31,17 @@ router.post("/accessories", upload.single("image"), async (req, res) => {
             });
         }
 
-        if (!label || !value || !type) {
+        if (!label || !value || !type || !size) {
             return res.status(400).send({
                 success: false,
-                message: "label, value and type are required",
+                message: "label, value, size and type are required",
             });
         }
 
         const findDuplicatecolorIcon = await accessoriesIcons.findOne({
             value: value,
-            type: type, //color ,headboard, size
+            type: type,
+            size, //color ,headboard, size
         });
 
         if (findDuplicatecolorIcon) {
@@ -57,6 +58,7 @@ router.post("/accessories", upload.single("image"), async (req, res) => {
             value: value,
             image: getUrl,
             type: type,
+            size: size,
         });
 
         accessoriesIcon.save((err, data) => {
@@ -71,16 +73,24 @@ router.post("/accessories", upload.single("image"), async (req, res) => {
 // GET ALL ICONS BY TYPE
 router.get("/accessories/all/:type", async (req, res) => {
     const { type } = req.params;
+    const size = req.query.size as string;
 
     if (!type) {
-        return res.status(400).json({ success: false, message: "invalid params" })
+        return res
+            .status(400)
+            .json({ success: false, message: "invalid params" });
     }
 
-    const getColorIcons = await accessoriesIcons.find({ type: type }).lean();
-
-    res.send(getColorIcons)
-
-
+    if (size) {
+        const getIcons = await accessoriesIcons.find({
+            type: type,
+            size: size,
+        });
+        res.send(getIcons);
+    } else {
+        const getIcons = await accessoriesIcons.find({ type: type }).lean();
+        res.send(getIcons);
+    }
 });
 
 // GET ICON BY ID AND TYPE
@@ -88,7 +98,9 @@ router.get("/accessories/:type/:id", async (req, res) => {
     const { type, id } = req.params;
 
     if (!type || !id) {
-        return res.status(400).json({ success: false, message: "invalid params" })
+        return res
+            .status(400)
+            .json({ success: false, message: "invalid params" });
     }
 
     const getColorIcons = await accessoriesIcons.find({ type: type }).lean();
@@ -108,10 +120,8 @@ router.get("/accessories/:type/:id", async (req, res) => {
         });
         res.send(availableSizes);
     } else {
-        res.send(getColorIcons)
+        res.send(getColorIcons);
     }
-
-
 });
 
 // GET ICONS BY ID
@@ -133,11 +143,12 @@ router.get("/:id", (req, res) => {
         res.send(data);
     });
 });
-// UPDATE ICONS BY ID 
+
+// UPDATE ICONS BY ID
 router.patch("/update/:id", upload.single("image"), async (req, res) => {
     const { id } = req.params;
     const file = req.file ? req.file : undefined;
-    const { label, value, type } = req.body;
+    const { label, value, type, size } = req.body;
 
     if (!id || !isValidObjectId(id)) {
         if (file) {
@@ -160,6 +171,7 @@ router.patch("/update/:id", upload.single("image"), async (req, res) => {
                         label: label,
                         value: value,
                         type: type,
+                        size: size,
                         image: file ? imageUrl : undefined,
                     },
                 },

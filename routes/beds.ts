@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { isValidObjectId } from "mongoose";
+import { isValidObjectId, Types } from "mongoose";
 import upload from "../config/multer";
 import { uploadBedImage } from "../controller";
 import beds from "../models/beds";
@@ -13,11 +13,19 @@ router.get("/get-bed-variant/:id", async (req, res) => {
     try {
         const { id } = req.params;
 
+        if (!id) {
+            return res.status(400).send({
+                success: false,
+                message: "ID is required",
+            });
+        }
         if (!isValidObjectId(id)) {
             return res.status(400).json({ message: "Invalid ID provided." });
         }
 
-        const getBedVariant = await bedsVariants.findById(id);
+        console.log({ id });
+        const bedId = new Types.ObjectId(id);
+        const getBedVariant = await bedsVariants.findById(bedId);
 
         if (!getBedVariant) {
             return res.status(400).json({ message: "Invalid ID provided." });
@@ -80,8 +88,7 @@ router.get("/get-all-beds-with-base-image", async (req, res) => {
                 bed.image = bed?.variants[0]?.image;
                 bed.price = bed?.variants[0]?.price;
             }
-        }
-        );
+        });
         //Get Total Pages
 
         const totalBedsCount = await beds.countDocuments({
