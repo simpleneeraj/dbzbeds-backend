@@ -6,10 +6,11 @@ import { rm } from "fs/promises";
 import { existsSync } from "fs";
 import { isValidObjectId } from "mongoose";
 import path from "path";
+import beds from "../models/beds";
 import { resizeIconAndUpload } from "../controller/icon-upload-resizer";
 
 const router = Router();
-
+// GET ALL ACCESSORIES
 router.get("/accessories", (req, res) => {
     const getColorIcons = accessoriesIcons.find({});
     getColorIcons.exec((err, data) => {
@@ -18,7 +19,7 @@ router.get("/accessories", (req, res) => {
     });
 });
 
-//create icons
+// CREATE ICON
 router.post("/accessories", upload.single("image"), async (req, res) => {
     try {
         const { label, value, type } = req.body;
@@ -67,15 +68,53 @@ router.post("/accessories", upload.single("image"), async (req, res) => {
     }
 });
 
-router.get("/accessories/:type", (req, res) => {
+// GET ALL ICONS BY TYPE
+router.get("/accessories/all/:type", async (req, res) => {
     const { type } = req.params;
-    const getColorIcons = accessoriesIcons.find({ type: type });
 
-    getColorIcons.exec((err, data) => {
-        if (err) throw err;
-        res.send(data);
-    });
+    if (!type) {
+        return res.status(400).json({ success: false, message: "invalid params" })
+    }
+
+    const getColorIcons = await accessoriesIcons.find({ type: type }).lean();
+
+    res.send(getColorIcons)
+
+
 });
+
+// GET ICON BY ID AND TYPE
+router.get("/accessories/:type/:id", async (req, res) => {
+    const { type, id } = req.params;
+
+    if (!type || !id) {
+        return res.status(400).json({ success: false, message: "invalid params" })
+    }
+
+    const getColorIcons = await accessoriesIcons.find({ type: type }).lean();
+    if (type === "SIZE") {
+        const getAllbedSizes = (await beds
+            .findOne({ _id: id }, { variants: 1, _id: 0 })
+            .populate({
+                path: "variants",
+                select: "size -_id",
+            })
+            .lean()) as any;
+
+        const availableSizes = getColorIcons.filter((item: any) => {
+            return !getAllbedSizes?.variants.find(
+                (variant: any) => variant.size === item.value
+            );
+        });
+        res.send(availableSizes);
+    } else {
+        res.send(getColorIcons)
+    }
+
+
+});
+
+// GET ICONS BY ID
 
 router.get("/:id", (req, res) => {
     const { id } = req.params;
@@ -94,7 +133,7 @@ router.get("/:id", (req, res) => {
         res.send(data);
     });
 });
-
+// UPDATE ICONS BY ID 
 router.patch("/update/:id", upload.single("image"), async (req, res) => {
     const { id } = req.params;
     const file = req.file ? req.file : undefined;

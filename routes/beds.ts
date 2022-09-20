@@ -266,7 +266,7 @@ router.patch("/update-bed-variant/:id", async (req, res) => {
     }
 
     const updatedBed = await bedsVariants.findByIdAndUpdate(
-        id,
+        { _id: id },
         {
             size,
             image,
