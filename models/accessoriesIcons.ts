@@ -24,7 +24,7 @@ const accessoriesIconSchema = new Schema<Accessories>(
         },
         size: {
             type: String,
-            required: true,
+            required: false,
         },
         type: {
             type: String,

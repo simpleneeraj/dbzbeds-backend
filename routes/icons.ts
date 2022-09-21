@@ -22,7 +22,9 @@ router.get("/accessories", (req, res) => {
 // CREATE ICON
 router.post("/accessories", upload.single("image"), async (req, res) => {
     try {
-        const { label, value, type, size } = req.body;
+        let { label, value, type, size } = req.body;
+
+        size = size ? size : undefined
 
         if (!req.file) {
             return res.status(400).send({
@@ -31,10 +33,10 @@ router.post("/accessories", upload.single("image"), async (req, res) => {
             });
         }
 
-        if (!label || !value || !type || !size) {
+        if (!label || !value || !type) {
             return res.status(400).send({
                 success: false,
-                message: "label, value, size and type are required",
+                message: "label, value, and type are required",
             });
         }
 
