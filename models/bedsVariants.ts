@@ -65,8 +65,8 @@ const bedVarientSchema = new Schema<BedVarient>(
             color: [
                 {
                     name: {
-                        type: String,
-                        required: true,
+                        type: Schema.Types.ObjectId,
+                        ref: "accessoriesIcons",
                     },
                     image: {
                         type: String,
@@ -78,8 +78,8 @@ const bedVarientSchema = new Schema<BedVarient>(
             headboard: [
                 {
                     name: {
-                        type: String,
-                        required: true,
+                        type: Schema.Types.ObjectId,
+                        ref: "accessoriesIcons",
                     },
                     price: {
                         type: String,
@@ -94,8 +94,8 @@ const bedVarientSchema = new Schema<BedVarient>(
             storage: [
                 {
                     name: {
-                        type: String,
-                        required: true,
+                        type: Schema.Types.ObjectId,
+                        ref: "accessoriesIcons",
                     },
                     price: {
                         type: String,
@@ -110,8 +110,8 @@ const bedVarientSchema = new Schema<BedVarient>(
             feet: [
                 {
                     name: {
-                        type: String,
-                        required: true,
+                        type: Schema.Types.ObjectId,
+                        ref: "accessoriesIcons",
                     },
                     price: {
                         type: String,
@@ -126,8 +126,8 @@ const bedVarientSchema = new Schema<BedVarient>(
             mattress: [
                 {
                     name: {
-                        type: String,
-                        required: true,
+                        type: Schema.Types.ObjectId,
+                        ref: "accessoriesIcons",
                     },
                     price: {
                         type: String,

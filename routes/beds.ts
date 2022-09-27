@@ -2,6 +2,8 @@ import { Router } from "express";
 import { isValidObjectId, Types } from "mongoose";
 import upload from "../config/multer";
 import { uploadBedImage } from "../controller";
+import { resizeImageAndUpload } from "../controller/image-upload-resizer";
+import accessoriesIcons from "../models/accessoriesIcons";
 import beds from "../models/beds";
 import bedsVariants from "../models/bedsVariants";
 
@@ -156,9 +158,11 @@ router.get("/:id", async (req, res) => {
                 .findOne({ _id: id })
                 .populate({
                     path: "variants",
-                    match: {
-                        size,
+                    populate: {
+                        path: "accessories.color.name accessories.headboard.name accessories.storage.name accessories.feet.name accessories.mattress.name",
+                        select: "label value image",
                     },
+                    match: { size },
                 })
                 .lean()) as any;
             const getAllbedSizes = (await beds
@@ -169,8 +173,13 @@ router.get("/:id", async (req, res) => {
                 })
                 .lean()) as any;
 
-            getCurrentSizeBed.availabeSizes = getAllbedSizes.variants.map(
-                (size: any) => size?.size
+            getCurrentSizeBed.availabeSizes = await Promise.all(
+                getAllbedSizes?.variants?.map(
+                    async (item: any) =>
+                        await accessoriesIcons.findOne({
+                            value: item.size,
+                        })
+                )
             );
 
             res.send(getCurrentSizeBed);
@@ -294,7 +303,13 @@ router.patch("/update-bed-variant/:id", async (req, res) => {
 //Upload image
 router.post("/upload-image", upload.single("image"), async (req, res) => {
     try {
-        const imageUploadUrl = await uploadBedImage(req, res, "red");
+        if (!req.file) {
+            return res.status(400).send({
+                success: false,
+                message: "IMAGE is required",
+            });
+        }
+        const imageUploadUrl = await resizeImageAndUpload(req.file, "red");
         res.send(imageUploadUrl);
     } catch (error) {
         res.status(500).send(error);
