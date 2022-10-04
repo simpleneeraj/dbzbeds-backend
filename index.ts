@@ -20,7 +20,7 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 app.use(
     cors({
-        origin: "http://localhost:3000",
+        origin: process.env.ALLOWED_DOMAINS,
         optionsSuccessStatus: 200,
     })
 );
