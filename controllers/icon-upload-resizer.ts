@@ -2,7 +2,7 @@ import path from "path";
 import * as fs from "fs";
 import sharp from "sharp";
 
-export const resizeImageAndUpload = async (
+export const resizeIconAndUpload = async (
     file: Express.Multer.File | undefined,
     filename: string
 ) => {
@@ -11,24 +11,30 @@ export const resizeImageAndUpload = async (
     const time = new Date().getTime();
     const fileName = `${filename}-${time}.webp`;
 
-    const folderPath = path.join(__dirname, "../", "uploads", "beds");
+    const folderPath = path.join(__dirname, "../", "uploads", "icons");
 
     if (!fs.existsSync(folderPath)) {
         fs.mkdirSync(folderPath, { recursive: true });
     }
 
-    const uploadPath = path.join(__dirname, "../", "uploads", "beds", fileName);
+    const uploadPath = path.join(
+        __dirname,
+        "../",
+        "uploads",
+        "icons",
+        fileName
+    );
 
     try {
         await sharp(file.path)
-            .resize(1920, 1080, {
+            .resize(150, 150, {
                 fit: "cover",
             })
             .webp({ quality: 70 })
             .toFile(path.resolve(uploadPath));
 
         fs.unlinkSync(file.path);
-        return `${process.env.BASE_URL}/beds-image/${fileName}`;
+        return `${process.env.BASE_URL}/api/icons-image/${fileName}`;
     } catch (error) {
         fs.unlinkSync(file.path);
         throw error;

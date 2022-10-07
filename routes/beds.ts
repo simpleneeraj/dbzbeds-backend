@@ -1,8 +1,9 @@
-import { Router } from "express";
+import { Request, Response, Router } from "express";
 import { isValidObjectId, Types } from "mongoose";
 import upload from "../config/multer";
-import { uploadBedImage } from "../controller";
-import { resizeImageAndUpload } from "../controller/image-upload-resizer";
+import { uploadBedImage } from "../controllers";
+import { resizeImageAndUpload } from "../controllers/image-upload-resizer";
+import { isAdmin } from "../middlewares/authentication";
 import accessoriesIcons from "../models/accessoriesIcons";
 import beds from "../models/beds";
 import bedsVariants from "../models/bedsVariants";
@@ -195,7 +196,7 @@ router.get("/:id", async (req, res) => {
 });
 //UPLOAD NEW BED
 
-router.post("/create", async (req, res) => {
+router.post("/create", isAdmin, async (req: Request, res: Response) => {
     const { name, description, categories } = req.body;
     if (!name) {
         return res
@@ -218,7 +219,7 @@ router.post("/create", async (req, res) => {
 });
 
 //ADD/CREATE BED VARIANTS
-router.post("/add-bed/:id", async (req, res) => {
+router.post("/add-bed/:id", isAdmin, async (req, res) => {
     const { id } = req.params;
 
     if (!isValidObjectId(id)) {
@@ -267,7 +268,7 @@ router.post("/add-bed/:id", async (req, res) => {
 });
 
 //UPDATE BED VARIANTS
-router.patch("/update-bed-variant/:id", async (req, res) => {
+router.patch("/update-bed-variant/:id", isAdmin, async (req, res) => {
     const { id } = req.params;
     const { size, image, price, accessories } = req.body;
 
@@ -301,23 +302,28 @@ router.patch("/update-bed-variant/:id", async (req, res) => {
 });
 
 //Upload image
-router.post("/upload-image", upload.single("image"), async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).send({
-                success: false,
-                message: "IMAGE is required",
-            });
+router.post(
+    "/upload-image",
+    isAdmin,
+    upload.single("image"),
+    async (req, res) => {
+        try {
+            if (!req.file) {
+                return res.status(400).send({
+                    success: false,
+                    message: "IMAGE is required",
+                });
+            }
+            const imageUploadUrl = await resizeImageAndUpload(req.file, "red");
+            res.send(imageUploadUrl);
+        } catch (error) {
+            res.status(500).send(error);
         }
-        const imageUploadUrl = await resizeImageAndUpload(req.file, "red");
-        res.send(imageUploadUrl);
-    } catch (error) {
-        res.status(500).send(error);
     }
-});
+);
 
 // UPDATE BED BY ID
-router.patch("/update-bed/:id", async (req, res) => {
+router.patch("/update-bed/:id", isAdmin, async (req, res) => {
     const { id } = req.params;
     if (!isValidObjectId(id)) {
         return res.status(400).json({ message: "Invalid ID provided." });
@@ -344,7 +350,7 @@ router.patch("/update-bed/:id", async (req, res) => {
 });
 
 // DELETE BED BY ID
-router.delete("/delete-bed/:id", async (req, res) => {
+router.delete("/delete-bed/:id", isAdmin, async (req, res) => {
     const { id } = req.params;
     try {
         const deletedBed = await beds.findByIdAndDelete(id);
@@ -358,7 +364,7 @@ router.delete("/delete-bed/:id", async (req, res) => {
 });
 
 // DELETE VARIANT BY ID
-router.delete("/delete-bed-variant/:id", async (req, res) => {
+router.delete("/delete-bed-variant/:id", isAdmin, async (req, res) => {
     const { id } = req.params;
     try {
         const deletedBed = await bedsVariants.findByIdAndDelete(id);

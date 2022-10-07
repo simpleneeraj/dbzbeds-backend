@@ -42,7 +42,7 @@ export const uploadBedImage = async (
                 return {
                     success: true,
                     message: "Image uploaded successfully",
-                    url: `${process.env.BASE_URL}/beds-image/${fileName}`,
+                    url: `${process.env.BASE_URL}/api/beds-image/${fileName}`,
                 };
             } catch (error) {
                 res.status(500).send(error);
@@ -97,7 +97,7 @@ export const uploadIcon = async (
                 }
             });
 
-        return `${process.env.BASE_URL}/icons-image/${fileName}`;
+        return `${process.env.BASE_URL}/api/icons-image/${fileName}`;
     } catch (error) {
         throw error;
     }

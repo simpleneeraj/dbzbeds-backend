@@ -1,13 +1,14 @@
 import { Router } from "express";
 import upload from "../config/multer";
-import { uploadIcon } from "../controller";
+import { uploadIcon } from "../controllers";
 import accessoriesIcons from "../models/accessoriesIcons";
 import { rm } from "fs/promises";
 import { existsSync } from "fs";
 import { isValidObjectId } from "mongoose";
 import path from "path";
 import beds from "../models/beds";
-import { resizeIconAndUpload } from "../controller/icon-upload-resizer";
+import { resizeIconAndUpload } from "../controllers/icon-upload-resizer";
+import { isAdmin } from "../middlewares/authentication";
 
 const router = Router();
 // GET ALL ACCESSORIES
@@ -20,57 +21,62 @@ router.get("/accessories", (req, res) => {
 });
 
 // CREATE ICON
-router.post("/accessories", upload.single("image"), async (req, res) => {
-    try {
-        let { label, value, type, size } = req.body;
+router.post(
+    "/accessories",
+    isAdmin,
+    upload.single("image"),
+    async (req, res) => {
+        try {
+            let { label, value, type, size } = req.body;
 
-        size = size ? size : undefined
+            size = size ? size : undefined;
 
-        if (!req.file) {
-            return res.status(400).send({
-                success: false,
-                message: "IMAGE is required",
+            if (!req.file) {
+                return res.status(400).send({
+                    success: false,
+                    message: "IMAGE is required",
+                });
+            }
+
+            if (!label || !value || !type) {
+                return res.status(400).send({
+                    success: false,
+                    message: "label, value, and type are required",
+                });
+            }
+
+            const findDuplicatecolorIcon = await accessoriesIcons.findOne({
+                value: value,
+                type: type,
+                size, //color ,headboard, size
             });
-        }
 
-        if (!label || !value || !type) {
-            return res.status(400).send({
-                success: false,
-                message: "label, value, and type are required",
+            if (findDuplicatecolorIcon) {
+                return res.status(400).send({
+                    success: false,
+                    message: "Value already exists & must be unique",
+                });
+            }
+
+            const getUrl = await resizeIconAndUpload(req.file, value);
+
+            const accessoriesIcon = new accessoriesIcons({
+                label: label,
+                value: value,
+                image: getUrl,
+                type: type,
+                size: size,
             });
-        }
 
-        const findDuplicatecolorIcon = await accessoriesIcons.findOne({
-            value: value,
-            type: type,
-            size, //color ,headboard, size
-        });
-
-        if (findDuplicatecolorIcon) {
-            return res.status(400).send({
-                success: false,
-                message: "Value already exists & must be unique",
+            accessoriesIcon.save((err, data) => {
+                if (err) throw err;
+                res.send(data);
             });
+        } catch (error) {
+            res.status(500).send(error);
         }
-
-        const getUrl = await resizeIconAndUpload(req.file, value);
-
-        const accessoriesIcon = new accessoriesIcons({
-            label: label,
-            value: value,
-            image: getUrl,
-            type: type,
-            size: size,
-        });
-
-        accessoriesIcon.save((err, data) => {
-            if (err) throw err;
-            res.send(data);
-        });
-    } catch (error) {
-        res.status(500).send(error);
     }
-});
+);
 
 // GET ALL ICONS BY TYPE
 router.get("/accessories/all/:type", async (req, res) => {
@@ -147,67 +153,72 @@ router.get("/:id", (req, res) => {
 });
 
 // UPDATE ICONS BY ID
-router.patch("/update/:id", upload.single("image"), async (req, res) => {
-    const { id } = req.params;
-    const file = req.file ? req.file : undefined;
-    const { label, value, type, size } = req.body;
+router.patch(
+    "/update/:id",
+    isAdmin,
+    upload.single("image"),
+    async (req, res) => {
+        const { id } = req.params;
+        const file = req.file ? req.file : undefined;
+        const { label, value, type, size } = req.body;
 
-    if (!id || !isValidObjectId(id)) {
-        if (file) {
-            await rm(file.path);
-        }
+        if (!id || !isValidObjectId(id)) {
+            if (file) {
+                await rm(file.path);
+            }
 
-        return res.status(400).send({
-            success: false,
-            message: "valid id is required",
-        });
-    }
-
-    try {
-        const imageUrl = await uploadIcon(file, value);
-        await accessoriesIcons
-            .findOneAndUpdate(
-                { _id: id },
-                {
-                    $set: {
-                        label: label,
-                        value: value,
-                        type: type,
-                        size: size,
-                        image: file ? imageUrl : undefined,
-                    },
-                },
-                { multi: false, omitUndefined: true, new: false }
-            )
-            .then((data) => {
-                if (file) {
-                    // Delete old image
-                    const pathname = path.join(
-                        __dirname,
-                        `../uploads/icons/${data?.image.split("/").pop()}`
-                    );
-                    if (existsSync(pathname)) {
-                        rm(pathname);
-                    }
-                }
-
-                res.send(data);
-            })
-            .catch(async (err) => {
-                if (file) {
-                    await rm(file.path);
-                }
-                res.status(500).send(err);
+            return res.status(400).send({
+                success: false,
+                message: "valid id is required",
             });
-    } catch (error) {
-        if (file) {
-            await rm(file.path);
         }
-        res.status(500).send(error);
-    }
-});
 
-router.delete("/accessories/:id", (req, res) => {
+        try {
+            const imageUrl = await uploadIcon(file, value);
+            await accessoriesIcons
+                .findOneAndUpdate(
+                    { _id: id },
+                    {
+                        $set: {
+                            label: label,
+                            value: value,
+                            type: type,
+                            size: size,
+                            image: file ? imageUrl : undefined,
+                        },
+                    },
+                    { multi: false, omitUndefined: true, new: false }
+                )
+                .then((data) => {
+                    if (file) {
+                        // Delete old image
+                        const pathname = path.join(
+                            __dirname,
+                            `../uploads/icons/${data?.image.split("/").pop()}`
+                        );
+                        if (existsSync(pathname)) {
+                            rm(pathname);
+                        }
+                    }
+
+                    res.send(data);
+                })
+                .catch(async (err) => {
+                    if (file) {
+                        await rm(file.path);
+                    }
+                    res.status(500).send(err);
+                });
+        } catch (error) {
+            if (file) {
+                await rm(file.path);
+            }
+            res.status(500).send(error);
+        }
+    }
+);
+
+router.delete("/accessories/:id", isAdmin, (req, res) => {
     try {
         const id = req.params.id;
 
