@@ -58,7 +58,7 @@ router.post(
                 });
             }
 
-            const getUrl = await resizeIconAndUpload(req.file, value);
+            const getUrl = await resizeIconAndUpload(req.file, value) as any;
 
             const accessoriesIcon = new accessoriesIcons({
                 label: label,
