@@ -303,7 +303,7 @@ router.patch("/update-bed-variant/:id", isAdmin, async (req, res) => {
 //Upload image
 router.post(
     "/upload-image",
-    isAdmin,
+
     upload.single("image"),
     async (req, res) => {
         try {
