@@ -1,7 +1,6 @@
 import { Request, Response, Router } from "express";
 import { isValidObjectId, Types } from "mongoose";
 import upload from "../config/multer";
-import { uploadBedImage } from "../controllers";
 import { resizeImageAndUpload } from "../controllers/image-upload-resizer";
 import { isAdmin } from "../middlewares/authentication";
 import accessoriesIcons from "../models/accessoriesIcons";
