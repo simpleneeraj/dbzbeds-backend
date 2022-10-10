@@ -21,62 +21,57 @@ router.get("/accessories", (req, res) => {
 });
 
 // CREATE ICON
-router.post(
-    "/accessories",
-    isAdmin,
-    upload.single("image"),
-    async (req, res) => {
-        try {
-            let { label, value, type, size } = req.body;
+router.post("/accessories", upload.single("image"), async (req, res) => {
+    try {
+        let { label, value, type, size } = req.body;
 
-            size = size ? size : undefined;
+        size = size ? size : undefined;
 
-            if (!req.file) {
-                return res.status(400).send({
-                    success: false,
-                    message: "IMAGE is required",
-                });
-            }
-
-            if (!label || !value || !type) {
-                return res.status(400).send({
-                    success: false,
-                    message: "label, value, and type are required",
-                });
-            }
-
-            const findDuplicatecolorIcon = await accessoriesIcons.findOne({
-                value: value,
-                type: type,
-                size, //color ,headboard, size
+        if (!req.file) {
+            return res.status(400).send({
+                success: false,
+                message: "IMAGE is required",
             });
-
-            if (findDuplicatecolorIcon) {
-                return res.status(400).send({
-                    success: false,
-                    message: "Value already exists & must be unique",
-                });
-            }
-
-            const getUrl = await resizeIconAndUpload(req.file, value);
-
-            const accessoriesIcon = new accessoriesIcons({
-                label: label,
-                value: value,
-                image: getUrl,
-                type: type,
-                size: size,
-            });
-
-            accessoriesIcon.save((err, data) => {
-                if (err) throw err;
-                res.send(data);
-            });
-        } catch (error) {
-            res.status(500).send(error);
         }
+
+        if (!label || !value || !type) {
+            return res.status(400).send({
+                success: false,
+                message: "label, value, and type are required",
+            });
+        }
+
+        const findDuplicatecolorIcon = await accessoriesIcons.findOne({
+            value: value,
+            type: type,
+            size, //color ,headboard, size
+        });
+
+        if (findDuplicatecolorIcon) {
+            return res.status(400).send({
+                success: false,
+                message: "Value already exists & must be unique",
+            });
+        }
+
+        const getUrl = await resizeIconAndUpload(req.file, value);
+
+        const accessoriesIcon = new accessoriesIcons({
+            label: label,
+            value: value,
+            image: getUrl,
+            type: type,
+            size: size,
+        });
+
+        accessoriesIcon.save((err, data) => {
+            if (err) throw err;
+            res.send(data);
+        });
+    } catch (error) {
+        res.status(500).send(error);
     }
-);
+});
 
 // GET ALL ICONS BY TYPE
 router.get("/accessories/all/:type", async (req, res) => {
