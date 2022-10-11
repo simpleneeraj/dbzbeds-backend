@@ -8,6 +8,7 @@ import upload from "./config/multer";
 import { uploadBedImage } from "./controllers";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth";
+import paymentRoutes from "./routes/payment";
 
 // INITIALIZING EXPREESS
 const app: Express = express();
@@ -23,7 +24,7 @@ app.use(cookieParser());
 
 app.use(
     cors({
-        origin: ["http://localhost:3000", "https://admin.dbzbeds.co.uk"],
+        origin: process.env.ALLOWED_DOMAINS?.split(" "),
         optionsSuccessStatus: 200,
     })
 );
@@ -41,6 +42,7 @@ app.get("/api", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/beds", bedRoutes);
 app.use("/api/icons", iconRoutes);
+app.use("/api/payment", paymentRoutes);
 
 // PORT LISTEN
 app.listen(port, () => {

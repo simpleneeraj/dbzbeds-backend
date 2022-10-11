@@ -11,7 +11,6 @@ const router = Router();
 
 //GET BED VARIANT BY ID
 router.get("/get-bed-variant/:id", async (req, res) => {
-    console.log("running bed");
     try {
         const { id } = req.params;
 
@@ -25,12 +24,10 @@ router.get("/get-bed-variant/:id", async (req, res) => {
             return res.status(400).json({ message: "Invalid ID provided." });
         }
 
-        console.log({ id });
-        const bedId = new Types.ObjectId(id);
-        const getBedVariant = await bedsVariants.findById(bedId);
+        const getBedVariant = await bedsVariants.findById(id);
 
         if (!getBedVariant) {
-            return res.status(400).json({ message: "Invalid ID provided." });
+            return res.status(400).json({ message: "No Bed Variant Found" });
         }
 
         res.status(200).json(getBedVariant);

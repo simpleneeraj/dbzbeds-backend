@@ -6,6 +6,7 @@ export interface IUser extends Document {
     password: string;
     role: string;
     avatar?: string | undefined;
+    isRegistered: boolean;
 }
 const userSchema = new Schema<IUser>({
     name: {
@@ -29,6 +30,11 @@ const userSchema = new Schema<IUser>({
     avatar: {
         type: String,
         required: false,
+    },
+    isRegistered: {
+        type: Boolean,
+        required: true,
+        default: false,
     },
 });
 
