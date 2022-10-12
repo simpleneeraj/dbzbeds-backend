@@ -113,3 +113,12 @@ export const handleVerifyTokenController = async (
         res.status(500).json({ error: error.message });
     }
 };
+
+export const handleLogoutController = async (req: Request, res: Response) => {
+    try {
+        res.clearCookie("access_token");
+        res.status(200).json({ success: true, message: "Logout successful" });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+};

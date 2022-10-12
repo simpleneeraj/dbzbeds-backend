@@ -147,7 +147,7 @@ router.get("/get-all-beds-with-base-image-admin", async (req, res) => {
 
 // GET BED BY ID
 router.get("/:id", async (req, res) => {
-    const { id } = req.params;
+    const { id } = req.params as any;
     const { size } = req.query;
     try {
         if (size) {
@@ -162,21 +162,29 @@ router.get("/:id", async (req, res) => {
                     match: { size },
                 })
                 .lean()) as any;
+
             const getAllbedSizes = (await beds
                 .findOne({ _id: id }, { variants: 1, _id: 0 })
                 .populate({
                     path: "variants",
-                    select: "size -_id",
+                    select: "size -_id price",
                 })
                 .lean()) as any;
 
             getCurrentSizeBed.availabeSizes = await Promise.all(
-                getAllbedSizes?.variants?.map(
-                    async (item: any) =>
-                        await accessoriesIcons.findOne({
+                getAllbedSizes?.variants?.map(async (item: any) => {
+                    const icon = (await accessoriesIcons
+                        .findOne({
                             value: item.size,
                         })
-                )
+                        .lean()) as any;
+
+                    console.log({ item: item });
+                    if (icon) {
+                        icon.price = item?.price?.salePrice;
+                    }
+                    return icon;
+                })
             );
 
             res.send(getCurrentSizeBed);

@@ -11,7 +11,7 @@ export const createCheckoutSessionService = async (line_items: any) => {
         line_items,
         mode: "payment",
         success_url: `${process.env.CLIENT_URL}/order/success`,
-        cancel_url: `${process.env.CLIENT_URL}/order/cancel`,
+        cancel_url: `${process.env.CLIENT_URL}/cart`,
     });
     return session;
 };

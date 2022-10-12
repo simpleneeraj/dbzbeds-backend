@@ -9,6 +9,7 @@ import { uploadBedImage } from "./controllers";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth";
 import paymentRoutes from "./routes/payment";
+import userRoutes from "./routes/user";
 
 // INITIALIZING EXPREESS
 const app: Express = express();
@@ -39,6 +40,7 @@ app.get("/api", (req, res) => {
     res.status(200).json({ name: "Hello World!" });
 });
 
+app.use("/api/user", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/beds", bedRoutes);
 app.use("/api/icons", iconRoutes);

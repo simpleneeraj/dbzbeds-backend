@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { decodeJWT, verifyJWT } from "../services/auth-services";
 
 export const isAuthenticated = async (
-    req: Request,
+    req: Request & { user: any },
     res: Response,
     next: NextFunction
 ) => {
@@ -11,10 +11,14 @@ export const isAuthenticated = async (
         return res.status(401).json({ message: "Unauthorized" });
     }
     try {
-        const decoded = await decodeJWT(token);
-        const verified = await verifyJWT(token);
+        const decoded = decodeJWT(token) as any;
+        const verified = verifyJWT(token);
         if (decoded && verified) {
+            req.user = decoded?.user;
             next();
+        } else {
+            res.clearCookie("access_token");
+            res.status(401).json({ message: "Unauthorized" });
         }
     } catch (error) {
         return res.status(401).json({ message: "Unauthorized" });
