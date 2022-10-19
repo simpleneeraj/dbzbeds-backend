@@ -98,7 +98,7 @@ const orderSchema = new Schema<IOrder>(
                 update_time: { type: String },
                 email_address: { type: String },
             },
-            status: { type: String, required: true, default: "pending" },
+            status: { type: String, required: true, default: "Processing" },
         },
 
         isDelivered: {
