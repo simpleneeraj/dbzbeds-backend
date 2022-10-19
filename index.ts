@@ -4,12 +4,11 @@ import bedRoutes from "./routes/beds";
 import iconRoutes from "./routes/icons";
 import express, { Express } from "express";
 import databaseConnect from "./config/database";
-import upload from "./config/multer";
-import { uploadBedImage } from "./controllers";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth";
 import paymentRoutes from "./routes/payment";
 import userRoutes from "./routes/user";
+import orderRoutes from "./routes/order";
 
 // INITIALIZING EXPREESS
 const app: Express = express();
@@ -45,6 +44,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/beds", bedRoutes);
 app.use("/api/icons", iconRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/order", orderRoutes);
 
 // PORT LISTEN
 app.listen(port, () => {
