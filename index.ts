@@ -36,7 +36,7 @@ app.use("/api/icons-image", express.static("dist/uploads/icons"));
 
 //ROUTES
 app.get("/api", (req, res) => {
-    res.status(200).json({ name: "Hello World!" });
+    res.status(200).json({ name: "Hello World! 2" });
 });
 
 app.use("/api/user", userRoutes);

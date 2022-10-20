@@ -2,7 +2,10 @@
 
 import bedsVariants, { BedVarient } from "../models/bedsVariants";
 
-const findHeadboardById = async (bedId: string, headboardId: string) => {
+export const findHeadboardByIdService = async (
+    bedId: string,
+    headboardId: string
+) => {
     const bed = await bedsVariants.findById(bedId);
 
     if (!bed) {
@@ -22,7 +25,7 @@ const findHeadboardById = async (bedId: string, headboardId: string) => {
 
 //find feet by id
 
-const findFeetById = async (bedId: string, feetId: string) => {
+export const findFeetByIdService = async (bedId: string, feetId: string) => {
     const bed = await bedsVariants.findById(bedId);
 
     if (!bed) {
@@ -40,7 +43,10 @@ const findFeetById = async (bedId: string, feetId: string) => {
 
 //find storage by id
 
-const findStorageById = async (bedId: string, storageId: string) => {
+export const findStorageByIdService = async (
+    bedId: string,
+    storageId: string
+) => {
     const bed = await bedsVariants.findById(bedId);
 
     if (!bed) {
@@ -60,7 +66,10 @@ const findStorageById = async (bedId: string, storageId: string) => {
 
 //find mattress by id
 
-const findMattressById = async (bedId: string, mattressId: string) => {
+export const findMattressByIdService = async (
+    bedId: string,
+    mattressId: string
+) => {
     const bed = await bedsVariants.findById(bedId);
 
     if (!bed) {
@@ -80,7 +89,7 @@ const findMattressById = async (bedId: string, mattressId: string) => {
 
 //find color by id
 
-const findColorById = async (bedId: string, colorId: string) => {
+export const findColorByIdService = async (bedId: string, colorId: string) => {
     const bed = await bedsVariants.findById(bedId);
 
     if (!bed) {
@@ -97,7 +106,7 @@ const findColorById = async (bedId: string, colorId: string) => {
 };
 
 //find bed by id
-const findBedById = async (bedId: string) => {
+export const findBedByIdService = async (bedId: string) => {
     const bed = await bedsVariants.findById(bedId);
 
     if (!bed) {
@@ -108,8 +117,7 @@ const findBedById = async (bedId: string) => {
 };
 
 //find accessories locally
-
-const findAccessoriesLocally = (
+export const findAccessoriesLocallyService = (
     bed: BedVarient,
     headboardId: string,
     feetId: string,
