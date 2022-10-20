@@ -27,8 +27,8 @@ export const resizeIconAndUpload = async (
 
     try {
         await sharp(file.path)
-            .resize(150, 150, {
-                fit: "contain",
+            .resize(200, 116, {
+                fit: "cover",
             })
             .webp({ quality: 70 })
             .toFile(path.resolve(uploadPath));
