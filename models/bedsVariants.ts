@@ -1,6 +1,7 @@
 import { Document, model, Schema } from "mongoose";
 
-interface BedVarient extends Document {
+export interface BedVarient extends Document {
+    _id: string;
     size: string;
     image: string;
     price: {
@@ -10,30 +11,35 @@ interface BedVarient extends Document {
     accessories: {
         color: [
             {
+                _id: string;
                 name: string;
                 image: string;
             }
         ];
         headboard: [
             {
+                _id: string;
                 name: string;
                 price: string;
             }
         ];
         storage: [
             {
+                _id: string;
                 name: string;
                 price: string;
             }
         ];
         feet: [
             {
+                _id: string;
                 name: string;
                 price: string;
             }
         ];
         mattress: [
             {
+                _id: string;
                 name: string;
                 price: string;
             }

@@ -1,6 +1,5 @@
 import { Router } from "express";
 import upload from "../config/multer";
-import { uploadIcon } from "../controllers";
 import accessoriesIcons from "../models/accessoriesIcons";
 import { rm } from "fs/promises";
 import { existsSync } from "fs";
@@ -169,7 +168,7 @@ router.patch(
         }
 
         try {
-            const imageUrl = await uploadIcon(file, value);
+            const imageUrl = await resizeIconAndUpload(req.file, value);
             await accessoriesIcons
                 .findOneAndUpdate(
                     { _id: id },
