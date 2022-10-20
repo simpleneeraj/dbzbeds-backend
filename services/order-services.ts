@@ -2,7 +2,6 @@ import Order from "../models/orders";
 
 //create order
 export const createOrderService = async (order: any) => {
-    const bed = 
     const newOrder = await Order.create(order);
     return newOrder;
 };
