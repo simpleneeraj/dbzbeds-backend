@@ -147,70 +147,65 @@ router.get("/:id", (req, res) => {
 });
 
 // UPDATE ICONS BY ID
-router.patch(
-    "/update/:id",
-    isAdmin,
-    upload.single("image"),
-    async (req, res) => {
-        const { id } = req.params;
-        const file = req.file ? req.file : undefined;
-        const { label, value, type, size } = req.body;
+router.patch("/update/:id", upload.single("image"), async (req, res) => {
+    const { id } = req.params;
+    const file = req.file ? req.file : undefined;
+    const { label, value, type, size } = req.body;
 
-        if (!id || !isValidObjectId(id)) {
-            if (file) {
-                await rm(file.path);
-            }
-
-            return res.status(400).send({
-                success: false,
-                message: "valid id is required",
-            });
+    if (!id || !isValidObjectId(id)) {
+        if (file) {
+            await rm(file.path);
         }
 
-        try {
-            const imageUrl = await resizeIconAndUpload(req.file, value);
-            await accessoriesIcons
-                .findOneAndUpdate(
-                    { _id: id },
-                    {
-                        $set: {
-                            label: label,
-                            value: value,
-                            type: type,
-                            size: size,
-                            image: file ? imageUrl : undefined,
-                        },
-                    },
-                    { multi: false, omitUndefined: true, new: false }
-                )
-                .then((data) => {
-                    if (file) {
-                        // Delete old image
-                        const pathname = path.join(
-                            __dirname,
-                            `../uploads/icons/${data?.image.split("/").pop()}`
-                        );
-                        if (existsSync(pathname)) {
-                            rm(pathname);
-                        }
-                    }
-
-                    res.send(data);
-                })
-                .catch(async (err) => {
-                    if (file) {
-                        await rm(file.path);
-                    }
-                    res.status(500).send(err);
-                });
-        } catch (error) {
-            if (file) {
-                await rm(file.path);
-            }
-            res.status(500).send(error);
-        }
+        return res.status(400).send({
+            success: false,
+            message: "valid id is required",
+        });
     }
-);
+
+    try {
+        const imageUrl = await resizeIconAndUpload(req.file, value);
+        await accessoriesIcons
+            .findOneAndUpdate(
+                { _id: id },
+                {
+                    $set: {
+                        label: label,
+                        value: value,
+                        type: type,
+                        size: size,
+                        image: file ? imageUrl : undefined,
+                    },
+                },
+                { multi: false, omitUndefined: true, new: false }
+            )
+            .then((data) => {
+                if (file) {
+                    // Delete old image
+                    const pathname = path.join(
+                        __dirname,
+                        `../uploads/icons/${data?.image.split("/").pop()}`
+                    );
+                    if (existsSync(pathname)) {
+                        rm(pathname);
+                    }
+                }
+
+                res.send(data);
+            })
+            .catch(async (err) => {
+                if (file) {
+                    await rm(file.path);
+                }
+                res.status(500).send(err);
+            });
+    } catch (error) {
+        if (file) {
+            await rm(file.path);
+        }
+        res.status(500).send(error);
+    }
+});
 
 router.delete("/accessories/:id", isAdmin, (req, res) => {
     try {
