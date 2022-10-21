@@ -21,7 +21,7 @@ export const createOrderController = async (req: Request, res: Response) => {
 export const getOrderByIdController = async (req: Request, res: Response) => {
     try {
         const order = await getOrderByIdService(req.params.id);
-        res.status(200).json({ order });
+        res.status(200).json(order);
     } catch (error) {
         res.status(400).json({ error });
     }

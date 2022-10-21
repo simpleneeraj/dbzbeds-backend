@@ -69,12 +69,13 @@ const orderSchema = new Schema<IOrder>(
 
         orderItems: [
             {
-                name: { type: String, required: true },
+                name: { type: String, required: false },
                 size: { type: String, required: true },
                 quantity: { type: Number, required: true },
-                accessories: { type: Array, required: true },
+                accessories: { type: Object, required: true },
                 price: { type: Number, required: true },
                 image: { type: String, required: true },
+                categories: { type: Array, required: false },
             },
         ],
 

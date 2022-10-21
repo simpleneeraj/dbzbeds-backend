@@ -1,9 +1,56 @@
 import Order from "../models/orders";
+import {
+    findAccessoriesLocallyService,
+    findBedVariantWithProductNameByIdService,
+} from "./accessories-services";
 
 //create order
 export const createOrderService = async (order: any) => {
-    const newOrder = await Order.create(order);
-    return newOrder;
+    if (order?.orderItems && order?.orderItems?.length > 0) {
+        const test = order.orderItems.map(async (orderItem: any) => {
+            const bedVariantWithProductName =
+                await findBedVariantWithProductNameByIdService(
+                    orderItem?.bedId,
+                    orderItem._id
+                );
+
+            if (bedVariantWithProductName) {
+                const data = findAccessoriesLocallyService(
+                    bedVariantWithProductName as any,
+                    orderItem?.headboard,
+                    orderItem?.feet,
+                    orderItem?.mattress,
+                    orderItem?.color,
+                    orderItem?.storage
+                );
+
+                return {
+                    name: data?.name,
+                    categories: data?.categories,
+                    size: data?.variant?.size,
+                    image: data?.variant?.image,
+                    quantity: orderItem?.quantity,
+                    accessories: {
+                        headboard: data?.headboard,
+                        mattress: data?.mattress,
+                        color: data?.color,
+                        storage: data?.storage,
+                        feet: data?.feet,
+                    },
+                    price: data?.totalPrice * Number(orderItem?.quantity),
+                };
+            }
+        });
+
+        order.orderItems = await Promise.all(test);
+        order.totalPrice = order.orderItems.reduce(
+            (acc: any, item: any) => acc + item.price,
+            0
+        );
+
+        const newOrder = await Order.create(order);
+        return newOrder;
+    }
 };
 
 //get order by id
