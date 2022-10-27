@@ -27,22 +27,24 @@ export const createOrderService = async (order: any) => {
                 return {
                     name: data?.name,
                     categories: data?.categories,
-                    size: data?.variant?.size,
+                    price: data?.variant?.price,
                     image: data?.variant?.image,
                     quantity: orderItem?.quantity,
+                    totalPrice: data?.totalPrice * Number(orderItem?.quantity),
                     accessories: {
+                        size: data?.size,
                         headboard: data?.headboard,
                         mattress: data?.mattress,
                         color: data?.color,
                         storage: data?.storage,
                         feet: data?.feet,
                     },
-                    price: data?.totalPrice * Number(orderItem?.quantity),
                 };
             }
         });
 
         order.orderItems = await Promise.all(test);
+
         order.totalPrice = order.orderItems.reduce(
             (acc: any, item: any) => acc + item.price,
             0
@@ -77,4 +79,14 @@ export const updateOrderService = async (id: string, order: any) => {
 export const deleteOrderService = async (id: string) => {
     const deletedOrder = await Order.findByIdAndDelete(id);
     return deletedOrder;
+};
+
+//update order status
+export const updateOrderStatusService = async (id: string, status: string) => {
+    const updatedOrder = await Order.findByIdAndUpdate(
+        id,
+        { ["payment.status"]: status },
+        { new: true }
+    );
+    return updatedOrder;
 };

@@ -1,10 +1,12 @@
 import { Request, Response } from "express";
+import { AcceptedOrderStatus } from "../constants/OrderStatus";
 import {
     createOrderService,
     deleteOrderService,
     getAllOrdersService,
     getOrderByIdService,
     updateOrderService,
+    updateOrderStatusService,
 } from "../services/order-services";
 
 //create order controller
@@ -51,6 +53,28 @@ export const updateOrderController = async (req: Request, res: Response) => {
 export const deleteOrderController = async (req: Request, res: Response) => {
     try {
         const order = await deleteOrderService(req.params.id);
+        res.status(200).json({ order });
+    } catch (error) {
+        res.status(400).json({ error });
+    }
+};
+
+//update order status
+export const updateOrderStatusController = async (
+    req: Request,
+    res: Response
+) => {
+    try {
+        if (
+            !req?.body?.status ||
+            !AcceptedOrderStatus.includes(req?.body?.status)
+        ) {
+            res.status(400).json({ error: "Invalid Order Status" });
+        }
+        const order = await updateOrderStatusService(
+            req.params.id,
+            req.body?.status
+        );
         res.status(200).json({ order });
     } catch (error) {
         res.status(400).json({ error });

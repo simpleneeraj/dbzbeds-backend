@@ -166,6 +166,9 @@ export const findAccessoriesLocallyService = (
         headboard.name = headboard?.name?.label;
     }
 
+    const size = bed.size;
+    const sizePrice = bed.price.salePrice;
+
     const feet = bed.accessories.feet.find((feet) => feet._id == feetId) as any;
 
     if (feet) {
@@ -212,6 +215,10 @@ export const findAccessoriesLocallyService = (
 
         name: bed?.name,
         categories: bed?.categories,
+        size: {
+            name: size,
+            price: sizePrice,
+        },
     };
 
     return accessories;
