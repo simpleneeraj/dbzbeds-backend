@@ -70,7 +70,6 @@ const orderSchema = new Schema<IOrder>(
         orderItems: [
             {
                 name: { type: String, required: false },
-                size: { type: String, required: true },
                 quantity: { type: Number, required: true },
                 accessories: { type: Object, required: true },
                 price: { type: Number, required: true },
@@ -99,7 +98,7 @@ const orderSchema = new Schema<IOrder>(
                 update_time: { type: String },
                 email_address: { type: String },
             },
-            status: { type: String, required: true, default: "Processing" },
+            status: { type: String, required: true, default: "PROCESSING" },
         },
 
         isDelivered: {

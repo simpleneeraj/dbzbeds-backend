@@ -24,13 +24,14 @@ export const createOrderService = async (order: any) => {
                     orderItem?.storage
                 );
 
+                console.log({ total: data?.totalPrice });
+
                 return {
                     name: data?.name,
                     categories: data?.categories,
-                    price: data?.variant?.price,
                     image: data?.variant?.image,
                     quantity: orderItem?.quantity,
-                    totalPrice: data?.totalPrice * Number(orderItem?.quantity),
+                    price: data?.totalPrice * Number(orderItem?.quantity),
                     accessories: {
                         size: data?.size,
                         headboard: data?.headboard,
@@ -49,6 +50,9 @@ export const createOrderService = async (order: any) => {
             (acc: any, item: any) => acc + item.price,
             0
         );
+
+        // console.log({ order });
+        // return order;
 
         const newOrder = await Order.create(order);
         return newOrder;
