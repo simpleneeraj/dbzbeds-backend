@@ -71,7 +71,7 @@ router.get("/get-all-beds-with-base-image", async (req, res) => {
 
     try {
         const bedsWithBaseImage = (await beds
-            .find({ "variants.0": { $exists: true } })
+            .find({ "variants.0": { $exists: true }, isDraft: { $ne: true } })
             .populate({
                 path: "variants",
                 select: "_id accessories.color size price image",
@@ -159,7 +159,7 @@ router.get("/:id", async (req, res) => {
                         path: "accessories.color.name accessories.headboard.name accessories.storage.name accessories.feet.name accessories.mattress.name",
                         select: "label value image",
                     },
-                    match: { size },
+                    match: { size, isDraft: { $ne: true } },
                 })
                 .lean()) as any;
 
@@ -168,6 +168,7 @@ router.get("/:id", async (req, res) => {
                 .populate({
                     path: "variants",
                     select: "size -_id price",
+                    match: { isDraft: { $ne: true } },
                 })
                 .lean()) as any;
 
@@ -274,7 +275,7 @@ router.post("/add-bed/:id", isAdmin, async (req, res) => {
 //UPDATE BED VARIANTS
 router.patch("/update-bed-variant/:id", isAdmin, async (req, res) => {
     const { id } = req.params;
-    const { size, image, price, accessories } = req.body;
+    const { size, image, price, accessories, isDraft } = req.body;
 
     if (!isValidObjectId(id)) {
         return res.status(400).json({ message: "Invalid ID provided." });
@@ -293,6 +294,7 @@ router.patch("/update-bed-variant/:id", isAdmin, async (req, res) => {
             image,
             price,
             accessories,
+            isDraft,
         },
         {
             new: true,

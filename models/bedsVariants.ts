@@ -8,6 +8,7 @@ export interface BedVarient extends Document {
         basePrice: number;
         salePrice: number;
     };
+    isDraft: boolean;
     accessories: {
         color: [
             {
@@ -66,6 +67,11 @@ const bedVarientSchema = new Schema<BedVarient>(
                 type: Number,
                 required: true,
             },
+        },
+        isDraft: {
+            type: Boolean,
+            required: true,
+            default: false,
         },
         accessories: {
             color: [
