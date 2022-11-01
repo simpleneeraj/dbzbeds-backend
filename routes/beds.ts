@@ -344,6 +344,7 @@ router.patch("/update-bed/:id", isAdmin, async (req, res) => {
                 categories: Array.isArray(req.body.categories)
                     ? req.body.categories
                     : undefined,
+                isDraft: req.body.isDraft,
             },
             {
                 new: true,

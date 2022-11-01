@@ -1,25 +1,36 @@
-import { model, Schema } from "mongoose"
+import { model, Schema } from "mongoose";
 
-
-const bedSchema = new Schema({
-    name: {
-        type: String,
-        required: true,
+const bedSchema = new Schema(
+    {
+        name: {
+            type: String,
+            required: true,
+        },
+        description: {
+            type: String,
+            required: false,
+        },
+        categories: [
+            {
+                type: String,
+                required: false,
+            },
+        ],
+        variants: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "bedsVariants",
+            },
+        ],
+        isDraft: {
+            type: Boolean,
+            required: true,
+            default: false,
+        },
     },
-    description: {
-        type: String,
-        required: false,
-    },
-    categories: [{
-        type: String,
-        required: false,
-    }],
-    variants: [{
-        type: Schema.Types.ObjectId,
-        ref: "bedsVariants"
-    }],
-}, {
-    timestamps: true
-})
+    {
+        timestamps: true,
+    }
+);
 
 export default model("beds", bedSchema);
