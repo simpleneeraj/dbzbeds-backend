@@ -105,6 +105,7 @@ router.get("/get-all-beds-with-base-image", async (req, res) => {
     }
 });
 
+
 router.get("/get-all-beds-with-base-image-admin", async (req, res) => {
     const { page = 1, limit = 20 } = req.query;
 

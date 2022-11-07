@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { AcceptedOrderStatus } from "../constants/OrderStatus";
+import { sendOrderDetailsService } from "../services/email-services";
 import {
     createOrderService,
     deleteOrderService,
@@ -76,6 +77,21 @@ export const updateOrderStatusController = async (
             req.body?.status
         );
         res.status(200).json({ order });
+    } catch (error) {
+        res.status(400).json({ error });
+    }
+};
+
+export const sendOrderDetaisEmailController = async (
+    req: Request,
+    res: Response
+) => {
+    try {
+        const orderEmail = await sendOrderDetailsService(
+            req.body.email,
+            req.body.message
+        );
+        res.status(200).json({ orderEmail: orderEmail });
     } catch (error) {
         res.status(400).json({ error });
     }
