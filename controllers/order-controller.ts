@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
-import { AcceptedOrderStatus } from "../constants/OrderStatus";
-import { sendOrderDetailsService } from "../services/email-services";
+import { AcceptedOrderStatus, orderStatus } from "../constants/OrderStatus";
+import {
+    sendEmailWithTemplate,
+    sendOrderDetailsService,
+} from "../services/email-services";
 import {
     createOrderService,
     deleteOrderService,
@@ -9,6 +12,7 @@ import {
     updateOrderService,
     updateOrderStatusService,
 } from "../services/order-services";
+import { orderCancelledTemplate } from "../templates/order-cancelled";
 
 //create order controller
 export const createOrderController = async (req: Request, res: Response) => {
@@ -72,6 +76,7 @@ export const updateOrderStatusController = async (
         ) {
             res.status(400).json({ error: "Invalid Order Status" });
         }
+
         const order = await updateOrderStatusService(
             req.params.id,
             req.body?.status

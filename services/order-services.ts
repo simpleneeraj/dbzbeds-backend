@@ -1,8 +1,11 @@
+import { orderStatus } from "../constants/OrderStatus";
 import Order from "../models/orders";
+import { orderCancelledTemplate } from "../templates/order-cancelled";
 import {
     findAccessoriesLocallyService,
     findBedVariantWithProductNameByIdService,
 } from "./accessories-services";
+import { sendEmailWithTemplate } from "./email-services";
 
 //create order
 export const createOrderService = async (order: any) => {
@@ -51,9 +54,6 @@ export const createOrderService = async (order: any) => {
             0
         );
 
-        // console.log({ order });
-        // return order;
-
         const newOrder = await Order.create(order);
         return newOrder;
     }
@@ -67,7 +67,7 @@ export const getOrderByIdService = async (id: string) => {
 
 //get all orders
 export const getAllOrdersService = async () => {
-    const orders = await Order.find();
+    const orders = await Order.find().sort("-createdAt");
     return orders;
 };
 
@@ -92,5 +92,21 @@ export const updateOrderStatusService = async (id: string, status: string) => {
         { ["payment.status"]: status },
         { new: true }
     );
+
+    if (status === orderStatus.Cancelled) {
+        const template = orderCancelledTemplate({
+            orderId: updatedOrder?.orderId as any,
+            orderAt: updatedOrder?.createdAt as any,
+            orderItems: updatedOrder?.orderItems as any,
+            totalPrice: updatedOrder?.totalPrice || 0,
+            shippingPrice: 0,
+        });
+        const email = await sendEmailWithTemplate(
+            updatedOrder?.user?.email as any,
+            template,
+            "Order Cancelled"
+        );
+    }
+
     return updatedOrder;
 };
