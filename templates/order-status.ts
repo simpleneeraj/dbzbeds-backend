@@ -4,6 +4,26 @@ interface IOrderCancelled {
     orderItems: IOrderItem[];
     totalPrice: number;
     shippingPrice: number;
+    billingAddress: IAddress;
+    shippingAddress: IAddress;
+    user: IUser;
+    subject: string;
+    message: string;
+}
+
+interface IUser {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+}
+
+interface IAddress {
+    address: string;
+    townCity: string;
+    postalCode: string;
+    country: string;
+    companyName: string;
 }
 
 interface IOrderItem {
@@ -35,12 +55,17 @@ interface IAccessories {
     };
 }
 
-export const orderCancelledTemplate = ({
+export const orderStatusTemplate = ({
     orderId,
     orderAt,
     orderItems,
     totalPrice,
     shippingPrice,
+    billingAddress,
+    shippingAddress,
+    user,
+    message,
+    subject,
 }: IOrderCancelled) => {
     return `
     <!DOCTYPE html>
@@ -105,7 +130,7 @@ export const orderCancelledTemplate = ({
                               background-color: inherit;
                             "
                           >
-                            Order Cancelled: #${orderId}
+                            ${subject}: #${orderId}
                           </h1>
                         </td>
                       </tr>
@@ -146,8 +171,7 @@ export const orderCancelledTemplate = ({
                                     "
                                   >
                                     <p style="margin: 0 0 16px">
-                                      Notification to let you know – order #${orderId}
-                                      belonging to test ing has been cancelled:
+                                     ${message}
                                     </p>
     
                                     <h2
@@ -452,7 +476,11 @@ export const orderCancelledTemplate = ({
                                                 text-align: left;
                                               "
                                             >
-                                              Free shipping
+                                              ${
+                                                  shippingPrice
+                                                      ? `<span><span>£</span>${shippingPrice}</span>`
+                                                      : "Free Shipping"
+                                              }
                                             </td>
                                           </tr>
                                           <tr>
@@ -561,21 +589,27 @@ export const orderCancelledTemplate = ({
                                                 border: 1px solid #e5e5e5;
                                               "
                                             >
-                                              test ing<br />web<br />noida<br />noida<br />noida<br />noida<br />WV14
-                                              7HZ <br /><a
-                                                href="tel:9876543210"
+                                              ${
+                                                  billingAddress.companyName
+                                              }<br />${user.firstName} ${
+        user.lastName
+    }<br />${billingAddress.address}<br />${billingAddress.townCity}<br />${
+        billingAddress.postalCode
+    }<br />${billingAddress.country}<br />
+                                              <a
+                                                href="tel:${user.phone}"
                                                 style="
                                                   color: #7f54b3;
                                                   font-weight: normal;
                                                   text-decoration: underline;
                                                 "
                                                 target="_blank"
-                                                >9876543210</a
+                                                >${user.phone}</a
                                               >
                                               <br /><a
-                                                href="mailto:amitkumarisg44@gmail.com"
+                                                href="mailto:${user.email}"
                                                 target="_blank"
-                                                >amitkumarisg44@gmail.com</a
+                                                > ${user.email}</a
                                               >
                                             </address>
                                           </td>
@@ -613,16 +647,27 @@ export const orderCancelledTemplate = ({
                                                 border: 1px solid #e5e5e5;
                                               "
                                             >
-                                              test ing<br />web<br />noida<br />noida<br />noida<br />noida<br />WV14
-                                              7HZ <br /><a
-                                                href="tel:9876543210"
+                                              ${
+                                                  shippingAddress.companyName
+                                              }<br />${user.firstName} ${
+        user.lastName
+    }<br />${shippingAddress.address}<br />${shippingAddress.townCity}<br />${
+        shippingAddress.postalCode
+    }<br />${shippingAddress.country}<br />
+                                              <a
+                                                href="tel:${user.phone}"
                                                 style="
                                                   color: #7f54b3;
                                                   font-weight: normal;
                                                   text-decoration: underline;
                                                 "
                                                 target="_blank"
-                                                >9876543210</a
+                                                >${user.phone}</a
+                                              >
+                                              <br /><a
+                                                href="mailto:${user.email}"
+                                                target="_blank"
+                                                > ${user.email}</a
                                               >
                                             </address>
                                           </td>

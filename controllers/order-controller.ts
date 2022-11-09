@@ -12,7 +12,7 @@ import {
     updateOrderService,
     updateOrderStatusService,
 } from "../services/order-services";
-import { orderCancelledTemplate } from "../templates/order-cancelled";
+import { orderStatusTemplate } from "../templates/order-status";
 
 //create order controller
 export const createOrderController = async (req: Request, res: Response) => {
