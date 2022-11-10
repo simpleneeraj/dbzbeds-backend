@@ -67,11 +67,20 @@ router.get("/", async (req, res) => {
 
 // GET ALL BEDS WITH BASE IMAGE
 router.get("/get-all-beds-with-base-image", async (req, res) => {
-    const { page = 1, limit = 20 } = req.query;
+    const { page = 1, limit = 20, category } = req.query;
+
+    const searchPayload: any = {
+        "variants.0": { $exists: true },
+        isDraft: { $ne: true },
+    };
+
+    if (category) {
+        searchPayload.categories = { $elemMatch: { $eq: category } };
+    }
 
     try {
         const bedsWithBaseImage = (await beds
-            .find({ "variants.0": { $exists: true }, isDraft: { $ne: true } })
+            .find(searchPayload)
             .populate({
                 path: "variants",
                 select: "_id accessories.color size price image",
@@ -90,9 +99,7 @@ router.get("/get-all-beds-with-base-image", async (req, res) => {
         });
         //Get Total Pages
 
-        const totalBedsCount = await beds.countDocuments({
-            "variants.0": { $exists: true },
-        });
+        const totalBedsCount = await beds.countDocuments(searchPayload);
         const pages = Math.ceil(Number(totalBedsCount) / Number(limit));
 
         res.json({
@@ -104,7 +111,6 @@ router.get("/get-all-beds-with-base-image", async (req, res) => {
         res.status(500).send(error);
     }
 });
-
 
 router.get("/get-all-beds-with-base-image-admin", async (req, res) => {
     const { page = 1, limit = 20 } = req.query;
