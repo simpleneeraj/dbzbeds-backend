@@ -1,6 +1,6 @@
 import { model, Schema } from "mongoose";
 
-export interface IHeadboard {
+export interface IMattress {
     _id?: string;
     name: string;
     description: string;
@@ -11,7 +11,7 @@ export interface IHeadboard {
     updatedAt?: Date;
 }
 
-const headboardSchema = new Schema<IHeadboard>(
+const mattressSchema = new Schema<IMattress>(
     {
         name: {
             type: String,
@@ -30,7 +30,7 @@ const headboardSchema = new Schema<IHeadboard>(
         variants: [
             {
                 type: Schema.Types.ObjectId,
-                ref: "headboardVariants",
+                ref: "mattressVariants",
             },
         ],
         isDraft: {
@@ -44,4 +44,4 @@ const headboardSchema = new Schema<IHeadboard>(
     }
 );
 
-export default model<IHeadboard>("headboards", headboardSchema);
+export default model<IMattress>("mattresses", mattressSchema);
