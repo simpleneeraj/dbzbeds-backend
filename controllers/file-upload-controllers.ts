@@ -1,6 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import multiplefile from "../models/multiplefile";
-import multipleFileUpload from "../services/image-service";
+import multipleFileUpload, {
+    deleteFileService,
+    getMultipleFilesByIdService,
+    getMultipleFilesService
+} from "../services/image-service";
 
 {/* upload multiple beds */ }
 export const UploadMutipleImageController = async (req: Request, res: Response) => {
@@ -19,8 +23,8 @@ export const UploadMutipleImageController = async (req: Request, res: Response) 
 {/* get all multiple beds */ }
 export const getAllMultipleFiles = async (req: Request, res: Response) => {
     try {
-        const response = await multiplefile.find();
-        res.status(200).send(response);
+        const response = await getMultipleFilesService();
+        res.status(200).send({ response });
     } catch (error: any) {
         res.status(400).json({ error: error.message });
     }
@@ -29,8 +33,8 @@ export const getAllMultipleFiles = async (req: Request, res: Response) => {
 {/* get multiple beds by id*/ }
 export const getAllMultipleFilesById = async (req: Request, res: Response) => {
     try {
-        const response = await multiplefile.findById(req.params.id);
-        res.status(200).json(response);
+        const response = await getMultipleFilesByIdService(req.params.id);
+        res.status(200).json({ response });
     } catch (error: any) {
         res.status(400).json({ error: error.message });
     }
@@ -39,8 +43,8 @@ export const getAllMultipleFilesById = async (req: Request, res: Response) => {
 {/* delete multiple beds by id*/ }
 export const deleteMultipleFiles = async (req: Request, res: Response) => {
     try {
-        await multiplefile.findByIdAndDelete(req.params.id);
-        res.status(200).json("beds has been deleted");
+        const deleteFile = await deleteFileService(req.params.id);
+        res.status(200).json({ deleteFile });
     } catch (error: any) {
         res.status(400).json({ error: error.message });
     }
@@ -52,7 +56,7 @@ export const updateMultipleFiles = async (req: Request, res: Response) => {
         const updateFiles = await multiplefile.findByIdAndUpdate(
             req.params.id, { $set: req.body }, { new: true }
         );
-        res.status(200).json(updateFiles);
+        res.status(200).json({ updateFiles });
     } catch (error: any) {
         res.status(400).json({ error: error.message });
     }
