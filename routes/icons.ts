@@ -6,7 +6,7 @@ import { existsSync } from "fs";
 import { isValidObjectId } from "mongoose";
 import path from "path";
 import beds from "../models/beds";
-import { resizeIconAndUpload } from "../controllers/icon-upload-resizer";
+import { resizeIconAndUpload } from "../services/image-service";
 import { isAdmin } from "../middlewares/authentication";
 
 const router = Router();
