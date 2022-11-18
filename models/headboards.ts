@@ -1,4 +1,5 @@
 import { model, Schema } from "mongoose";
+import headboardVariants from "./headboardVariants";
 
 export interface IHeadboard {
     _id?: string;
@@ -30,7 +31,7 @@ const headboardSchema = new Schema<IHeadboard>(
         variants: [
             {
                 type: Schema.Types.ObjectId,
-                ref: "headboardVariants",
+                ref: headboardVariants,
             },
         ],
         isDraft: {

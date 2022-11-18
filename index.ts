@@ -9,7 +9,8 @@ import authRoutes from "./routes/auth";
 import paymentRoutes from "./routes/payment";
 import userRoutes from "./routes/user";
 import orderRoutes from "./routes/order";
-import bedsRoutes from './routes/fileroutes'
+import bedsRoutes from "./routes/fileroutes";
+import headboardRoutes from "./routes/headboard";
 
 // INITIALIZING EXPREESS
 const app: Express = express();
@@ -46,8 +47,9 @@ app.use("/api/beds", bedRoutes);
 app.use("/api/icons", iconRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/order", orderRoutes);
+app.use("/api/headboard", headboardRoutes);
 
-app.use('/api/bedsMultiple', bedsRoutes);
+app.use("/api/bedsMultiple", bedsRoutes);
 
 // PORT LISTEN
 app.listen(port, () => {
