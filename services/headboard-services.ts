@@ -1,4 +1,6 @@
+import { isValidObjectId } from "mongoose";
 import headboards, { IHeadboard } from "../models/headboards";
+import headboardVariants from "../models/headboardVariants";
 
 //create headboard service
 
@@ -52,4 +54,22 @@ export const updateHeadboardService = async (
 //delete headboard service
 export const deleteHeadboardService = async (id: string) => {
     return await headboards.findByIdAndDelete(id);
+};
+
+export const getHeadboardVariantByIdService = async (id: string) => {
+    if (!id) {
+        throw Error("ID is required");
+    }
+
+    if (!isValidObjectId(id)) {
+        throw Error("Invalid ID provided.");
+    }
+
+    const getBedVariant = await headboardVariants.findById(id);
+
+    if (!getBedVariant) {
+        throw Error("No Bed Variant Found");
+    }
+
+    return getBedVariant;
 };

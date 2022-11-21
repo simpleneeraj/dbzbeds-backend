@@ -9,6 +9,7 @@ import {
     getHeadboardByIdService,
     getHeadboardByIdServiceWithVariants,
     getHeadboardCountService,
+    getHeadboardVariantByIdService,
     getHeadboardWithVariantService,
     updateHeadboardService,
 } from "../services/headboard-services";
@@ -184,4 +185,49 @@ export const createHeadboardVariantController = async (
             data,
         });
     });
+};
+
+export const updateHeadboardVariantController = async (
+    req: Request,
+    res: Response
+) => {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+        return res.status(400).json({ message: "Invalid ID provided." });
+    }
+
+    const findHeadboardVarient = headboardVariants.findById(id);
+
+    if (!findHeadboardVarient) {
+        return res.status(400).json({ message: "Invalid ID provided." });
+    }
+
+    const updateHeadboard = await headboardVariants.findByIdAndUpdate(
+        { _id: id },
+        req.body,
+        {
+            new: true,
+        }
+    );
+
+    res.status(200).json({
+        message: "Bed Variant Updated Succesfully",
+        data: updateHeadboard,
+    });
+};
+
+export const getHeadboardVariantByIdController = async (
+    req: Request,
+    res: Response
+) => {
+    try {
+        const { id } = req.params;
+
+        const findHeadboardVarient = await getHeadboardVariantByIdService(id);
+
+        res.status(200).json(findHeadboardVarient);
+    } catch (error) {
+        res.status(400).json({ error });
+    }
 };
