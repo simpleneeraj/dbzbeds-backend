@@ -11,12 +11,32 @@ import userRoutes from "./routes/user";
 import orderRoutes from "./routes/order";
 import bedsRoutes from "./routes/fileroutes";
 import headboardRoutes from "./routes/headboard";
+import { Server, Socket } from "socket.io";
+import { createServer } from "http";
+import { getOrderByIdService } from "./services/order-services";
+import {
+    getActiveUserBySocketId,
+    createActiveUser,
+    findActiveUserByOrderId,
+    updateUserOrderIdBySocketId,
+    reomveOrderIdBySocketId,
+    removeActiveUser,
+} from "./services/socket-services";
 
 // INITIALIZING EXPREESS
+// INITIALIZING EXPREESS
 const app: Express = express();
+const server = createServer(app);
 const port = process.env.PORT;
-
 databaseConnect();
+
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"],
+        credentials: true,
+    },
+});
 
 // MIDDLEWARES
 app.disable("x-powered-by");
@@ -52,6 +72,73 @@ app.use("/api/headboard", headboardRoutes);
 app.use("/api/bedsMultiple", bedsRoutes);
 
 // PORT LISTEN
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`Server Runnig http://localhost:${port}`);
+});
+
+const activeUsers: IActiveUser[] = [];
+
+io.on("connection", (socket: Socket) => {
+    socket.once("active", async () => {
+        const findActiveUser = await getActiveUserBySocketId(
+            activeUsers,
+            socket.id
+        );
+        if (findActiveUser) return;
+        await createActiveUser(activeUsers, {
+            socketId: socket.id,
+        });
+    });
+
+    socket.on("test", async () => {
+        const findActiveUser = await getActiveUserBySocketId(
+            activeUsers,
+            socket.id
+        );
+        io.emit("test", findActiveUser);
+    });
+
+    socket.on("active-order", async (orderId) => {
+        if (!orderId) return;
+
+        const findAlreadyActiveUser = await findActiveUserByOrderId(
+            activeUsers,
+            orderId
+        );
+
+        if (!findAlreadyActiveUser) {
+            await updateUserOrderIdBySocketId(activeUsers, socket.id, orderId);
+        }
+
+        socket.emit("is-order-accessible", {
+            access: findAlreadyActiveUser ? false : true,
+        });
+    });
+
+    socket.on("inactive-order", async (orderId) => {
+        if (!orderId) return;
+        reomveOrderIdBySocketId(activeUsers, socket.id);
+    });
+
+    socket.on("order", async (orderId) => {
+        if (!orderId) return;
+
+        const order = await getOrderByIdService(orderId);
+
+        if (!order) {
+            await updateUserOrderIdBySocketId(activeUsers, socket.id, orderId);
+        }
+
+        socket.emit("order", {
+            order,
+        });
+    });
+
+    socket.on("disconnect", () => {
+        removeActiveUser(activeUsers, socket.id);
+    });
+});
+
+app.get("/active", async (req, res) => {
+    res.status(200).json({ activeUsers });
 });

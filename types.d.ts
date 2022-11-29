@@ -6,3 +6,8 @@ declare namespace Express {
         user: any;
     }
 }
+
+interface IActiveUser {
+    socketId: string;
+    orderId?: string;
+}

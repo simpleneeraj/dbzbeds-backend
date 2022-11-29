@@ -9,6 +9,25 @@ import bedsVariants from "../models/bedsVariants";
 
 const router = Router();
 
+router.post("/update-size", async (req, res) => {
+    const { current_size, updated_size } = req.body as any;
+    try {
+        const updateSizeName = await bedsVariants.updateMany(
+            { size: current_size },
+            { $set: { size: updated_size } }
+        );
+
+        res.json({
+            updateSizeName,
+            message: "Size Updated Successfully",
+            current_size,
+            updated_size,
+        });
+    } catch (error) {
+        res.status(500).send;
+    }
+});
+
 //GET BED VARIANT BY ID
 router.get("/get-bed-variant/:id", async (req, res) => {
     try {
@@ -155,71 +174,165 @@ router.get("/get-all-beds-with-base-image-admin", async (req, res) => {
 // GET BED BY ID
 router.get("/:id", async (req, res) => {
     const { id } = req.params as any;
-    const { size } = req.query;
+    const { size } = req.query as any;
     try {
-        if (size) {
-            const getCurrentSizeBed = (await beds
-                .findOne({ _id: id })
-                .populate({
-                    path: "variants",
-                    populate: {
-                        path: "accessories.color.name accessories.headboard.name accessories.storage.name accessories.feet.name accessories.mattress.name",
-                        select: "label value image",
-                    },
-                    match: { size, isDraft: { $ne: true } },
-                })
-                .lean()) as any;
+        if (isValidObjectId(id)) {
+            console.log("⇄", id);
+            if (size) {
+                const getCurrentSizeBed = (await beds
+                    .findOne({ _id: id })
+                    .populate({
+                        path: "variants",
+                        populate: {
+                            path: "accessories.color.name accessories.headboard.name accessories.storage.name accessories.feet.name accessories.mattress.name",
+                            select: "label value image",
+                        },
+                        match: { size, isDraft: { $ne: true } },
+                    })
+                    .lean()) as any;
 
-            const getAllbedSizes = (await beds
-                .findOne({ _id: id }, { variants: 1, _id: 0 })
-                .populate({
-                    path: "variants",
-                    select: "size -_id price",
-                    match: { isDraft: { $ne: true } },
-                })
-                .lean()) as any;
+                const getAllbedSizes = (await beds
+                    .findOne({ _id: id }, { variants: 1, _id: 0 })
+                    .populate({
+                        path: "variants",
+                        select: "size -_id price",
+                        match: { isDraft: { $ne: true } },
+                    })
+                    .lean()) as any;
 
-            getCurrentSizeBed.availabeSizes = await Promise.all(
-                getAllbedSizes?.variants?.map(async (item: any) => {
-                    const icon = (await accessoriesIcons
-                        .findOne({
-                            value: item.size,
-                        })
-                        .lean()) as any;
+                getCurrentSizeBed.availabeSizes = await Promise.all(
+                    getAllbedSizes?.variants?.map(async (item: any) => {
+                        const icon = (await accessoriesIcons
+                            .findOne({
+                                value: item.size,
+                            })
+                            .lean()) as any;
 
-                    console.log({ item: item });
-                    if (icon) {
-                        icon.price = item?.price?.salePrice;
-                    }
-                    return icon;
-                })
-            );
+                        console.log({ item: item });
+                        if (icon) {
+                            icon.price = item?.price?.salePrice;
+                        }
+                        return icon;
+                    })
+                );
 
-            res.send(getCurrentSizeBed);
+                res.send(getCurrentSizeBed);
+            } else {
+                const getAllBeds = await beds
+                    .findOne({ _id: id })
+                    .populate("variants");
+                res.json(getAllBeds);
+            }
         } else {
-            const getAllBeds = await beds
-                .findOne({ _id: id })
-                .populate("variants");
-            res.json(getAllBeds);
+            // WHEN ID IS A SLUG THEN BEHAVIOUR SHOULD BE
+            if (size) {
+                const getCurrentSizeBed = (await beds
+                    .findOne({ slug: id })
+                    .populate({
+                        path: "variants",
+                        populate: {
+                            path: "accessories.color.name accessories.headboard.name accessories.storage.name accessories.feet.name accessories.mattress.name",
+                            select: "label value image",
+                        },
+                        match: { size, isDraft: { $ne: true } },
+                    })
+                    .lean()) as any;
+
+                const getAllbedSizes = (await beds
+                    .findOne({ slug: id }, { variants: 1, _id: 0 })
+                    .populate({
+                        path: "variants",
+                        select: "size -_id price",
+                        match: { isDraft: { $ne: true } },
+                    })
+                    .lean()) as any;
+
+                getCurrentSizeBed.availabeSizes = await Promise.all(
+                    getAllbedSizes?.variants?.map(async (item: any) => {
+                        const icon = (await accessoriesIcons
+                            .findOne({
+                                value: item.size,
+                            })
+                            .lean()) as any;
+
+                        console.log({ item: item });
+                        if (icon) {
+                            icon.price = item?.price?.salePrice;
+                        }
+                        return icon;
+                    })
+                );
+
+                res.send(getCurrentSizeBed);
+            } else {
+                const getCurrentSizeBed = (await beds
+                    .findOne({ slug: id, $arrayElemAt: ["variants", 0] })
+                    .populate({
+                        path: "variants.0",
+                        populate: {
+                            path: "accessories.color.name accessories.headboard.name accessories.storage.name accessories.feet.name accessories.mattress.name",
+                            select: "label value image",
+                        },
+                        match: { isDraft: { $ne: true } },
+                    })
+                    .lean()) as any;
+
+                const getAllbedSizes = (await beds
+                    .findOne({ slug: id }, { variants: 1, _id: 0 })
+                    .populate({
+                        path: "variants",
+                        select: "size -_id price",
+                        match: { isDraft: { $ne: true } },
+                    })
+                    .lean()) as any;
+
+                getCurrentSizeBed.availabeSizes = await Promise.all(
+                    getAllbedSizes?.variants?.map(async (item: any) => {
+                        const icon = (await accessoriesIcons
+                            .findOne({
+                                value: item.size,
+                            })
+                            .lean()) as any;
+
+                        console.log({ item: item });
+                        if (icon) {
+                            icon.price = item?.price?.salePrice;
+                        }
+                        return icon;
+                    })
+                );
+
+                getCurrentSizeBed.variants = [getCurrentSizeBed.variants[0]];
+                res.json(getCurrentSizeBed);
+            }
         }
     } catch (error: any) {
         res.status(500).send(error);
     }
 });
+
 //UPLOAD NEW BED
 
 router.post("/create", isAdmin, async (req: Request, res: Response) => {
-    const { name, description, categories } = req.body;
+    const { name, description, categories, slug, images } = req.body;
     if (!name) {
         return res
             .status(404)
             .json({ message: "Product name cannot be empty" });
     }
+    if (!slug) {
+        return res
+            .status(404)
+            .json({ message: "Product slug cannot be empty" });
+    }
+
     try {
         const createBed = await beds.create({
             name,
             description,
             categories: Array.isArray(categories) ? categories : undefined,
+            slug,
+            images,
         });
         res.json({
             message: "Bed Created Successfully",
@@ -352,6 +465,8 @@ router.patch("/update-bed/:id", isAdmin, async (req, res) => {
                     ? req.body.categories
                     : undefined,
                 isDraft: req.body.isDraft,
+                images: req.body.images,
+                slug: req.body.slug,
             },
             {
                 new: true,

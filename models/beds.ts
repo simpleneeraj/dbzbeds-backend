@@ -22,6 +22,16 @@ const bedSchema = new Schema(
                 ref: "bedsVariants",
             },
         ],
+        slug: {
+            type: String,
+            required: true,
+        },
+        images: [
+            {
+                type: String,
+                required: false,
+            },
+        ],
         isDraft: {
             type: Boolean,
             required: true,
