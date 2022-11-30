@@ -171,6 +171,46 @@ router.get("/get-all-beds-with-base-image-admin", async (req, res) => {
     }
 });
 
+router.get("/get-bed-by-size/:size", async (req, res) => {
+    const { size } = req.params as any;
+    const { page = 1, limit = 20 } = req.query;
+    try {
+        const findBeds = (await beds
+            .find({})
+            .populate({
+                path: "variants",
+                populate: {
+                    path: "accessories.color.name accessories.headboard.name accessories.storage.name accessories.feet.name accessories.mattress.name",
+                    select: "label value image",
+                },
+                match: { size, isDraft: { $ne: true } },
+            })
+            .sort({ createdAt: -1 })
+            .limit(Number(limit))
+            .skip(Number(limit) * (Number(page) - 1))
+            .lean()) as any;
+
+        findBeds.map((bed: any) => {
+            if (bed && bed?.variants[0]?.image) {
+                bed.image = bed?.variants[0]?.image;
+                bed.price = bed?.variants[0]?.price;
+            }
+        });
+
+        //Get Total Pages
+        const totalBedsCount = await beds.countDocuments({});
+        const pages = Math.ceil(Number(totalBedsCount) / Number(limit));
+
+        res.json({
+            data: findBeds,
+            totalPages: pages,
+            nextPage: Number(page) < pages ? Number(page) + 1 : null,
+        });
+    } catch (error: any) {
+        res.status(500).send({ error: error?.message });
+    }
+});
+
 // GET BED BY ID
 router.get("/:id", async (req, res) => {
     const { id } = req.params as any;
