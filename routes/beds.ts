@@ -30,6 +30,25 @@ router.post("/update-size", async (req, res) => {
     }
 });
 
+router.get("/check-slug/:slug", async (req, res) => {
+    const { slug } = req.query as any;
+    try {
+        const checkSlug = await beds.findOne({ slug });
+
+        if (checkSlug) {
+            res.json({
+                message: "Slug already exists",
+            });
+        } else {
+            res.json({
+                message: "Slug is available",
+            });
+        }
+    } catch (error: any) {
+        res.status(500).send(error?.message);
+    }
+});
+
 //GET BED VARIANT BY ID
 router.get("/get-bed-variant/:id", async (req, res) => {
     try {
