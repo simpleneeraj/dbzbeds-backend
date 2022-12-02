@@ -15,6 +15,7 @@ const multipleFileUpload = async (files: any, details: IDetails) => {
     if (!details.name || !details.price || !details.des) {
         throw Error("all fields are required");
     }
+
     let filesArray: any = [];
     files.forEach((element: any) => {
         const file = {
@@ -52,7 +53,7 @@ const fileSizeFormatter = (bytes: number, decimal: number) => {
 };
 export default multipleFileUpload;
 
-//  get all multiple beds 
+//  get all multiple beds
 export const getMultipleFilesService = async () => {
     const response = await multiplefile.find();
     return response;
@@ -75,32 +76,39 @@ export const resizeImageAndUpload = async (
     file: Express.Multer.File | undefined,
     filename: string
 ) => {
-    if (!file) return undefined;
-
-    const time = new Date().getTime();
-    const fileName = `${filename}-${time}.webp`;
-
-    const folderPath = path.join(__dirname, "../", "uploads", "beds");
-
-    if (!fs.existsSync(folderPath)) {
-        fs.mkdirSync(folderPath, { recursive: true });
-    }
-
-    const uploadPath = path.join(__dirname, "../", "uploads", "beds", fileName);
-
     try {
-        await sharp(file.path)
-            .resize(1808, 678, {
-                fit: "cover",
+        if (!file) throw Error("File not found");
+
+        //PATH CONFIG
+        const time = new Date().getTime();
+        const fileName = `${filename}-${time}.webp`;
+        const folderPath = path.join(__dirname, "../", "uploads", "beds");
+        const uploadPath = path.join(
+            __dirname,
+            "../",
+            "uploads",
+            "beds",
+            fileName
+        );
+
+        //CREATE FOLDER IF NOT EXISTS
+        if (!fs.existsSync(folderPath)) {
+            fs.mkdirSync(folderPath, { recursive: true });
+        }
+
+        //IMAGE COMPRESSION AND RESIZING WITHOUT CHANGING ASPECT RATIO
+        await sharp(file.buffer)
+            .resize(1920, 1080, {
+                fit: sharp.fit.inside,
+                withoutEnlargement: true,
             })
             .webp({ quality: 70 })
-            .toFile(path.resolve(uploadPath));
+            .toFile(uploadPath);
 
-        fs.unlinkSync(file.path);
+        //RETURNING IMAGE URL
         return `${process.env.BASE_URL}/api/beds-image/${fileName}`;
-    } catch (error) {
-        fs.unlinkSync(file.path);
-        throw error;
+    } catch (error: any) {
+        throw Error(error?.message);
     }
 };
 
@@ -142,4 +150,21 @@ export const resizeIconAndUpload = async (
         fs.unlinkSync(file.path);
         throw error;
     }
+};
+
+export const deleteImages = async (images: any, folderPath: string) => {
+    const deletedImages = await Promise.all(
+        images.map((image: any) => {
+            const imagePath = path.join(
+                __dirname,
+                `${folderPath}/${image.split("/").pop()}`
+            );
+            return fs.unlink(imagePath, (err: any) => {
+                if (err) {
+                    console.log(err);
+                }
+            });
+        })
+    );
+    return deletedImages;
 };

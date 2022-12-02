@@ -1,11 +1,13 @@
 import { Request, Response, Router } from "express";
 import { isValidObjectId, Types } from "mongoose";
 import upload from "../config/multer";
-import { resizeImageAndUpload } from "../services/image-service";
+import { deleteImages, resizeImageAndUpload } from "../services/image-service";
 import { isAdmin } from "../middlewares/authentication";
 import accessoriesIcons from "../models/accessoriesIcons";
 import beds from "../models/beds";
 import bedsVariants from "../models/bedsVariants";
+import path from "path";
+import fs from "fs";
 
 const router = Router();
 
@@ -357,13 +359,21 @@ router.post("/create", isAdmin, async (req: Request, res: Response) => {
     const { name, description, categories, slug, images } = req.body;
     if (!name) {
         return res
-            .status(404)
+            .status(400)
             .json({ message: "Product name cannot be empty" });
     }
     if (!slug) {
         return res
-            .status(404)
+            .status(400)
             .json({ message: "Product slug cannot be empty" });
+    }
+
+    const findSlug = await beds.findOne({ slug }).lean();
+
+    if (findSlug) {
+        return res
+            .status(400)
+            .json({ message: "Slug already exists, Enter a unique Slug" });
     }
 
     try {
@@ -437,6 +447,11 @@ router.patch("/update-bed-variant/:id", isAdmin, async (req, res) => {
     const { id } = req.params;
     const { size, image, price, accessories, isDraft } = req.body;
 
+    const newImages = [
+        image,
+        ...accessories?.color?.map((item: any) => item.image),
+    ];
+
     if (!isValidObjectId(id)) {
         return res.status(400).json({ message: "Invalid ID provided." });
     }
@@ -455,11 +470,25 @@ router.patch("/update-bed-variant/:id", isAdmin, async (req, res) => {
             price,
             accessories,
             isDraft,
-        },
-        {
-            new: true,
         }
     );
+
+    if (!updatedBed) {
+        return res.status(400).json({ message: "Invalid ID provided." });
+    }
+
+    const oldImages = [
+        updatedBed.image,
+        ...updatedBed?.accessories?.color?.map((item: any) => item.image),
+    ];
+
+    const deletedImages = oldImages.filter(
+        (image: any) => !newImages.includes(image)
+    );
+
+    if (deletedImages.length > 0) {
+        await deleteImages(deletedImages, "../uploads/beds");
+    }
 
     res.status(200).json({
         message: "Bed Variant Updated Succesfully",
@@ -468,25 +497,20 @@ router.patch("/update-bed-variant/:id", isAdmin, async (req, res) => {
 });
 
 //Upload image
-router.post(
-    "/upload-image",
-
-    upload.single("image"),
-    async (req, res) => {
-        try {
-            if (!req.file) {
-                return res.status(400).send({
-                    success: false,
-                    message: "IMAGE is required",
-                });
-            }
-            const imageUploadUrl = await resizeImageAndUpload(req.file, "red");
-            res.send(imageUploadUrl);
-        } catch (error) {
-            res.status(500).send(error);
+router.post("/upload-image", upload.single("image"), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).send({
+                success: false,
+                message: "Image is required",
+            });
         }
+        const imageUploadUrl = await resizeImageAndUpload(req.file, "red");
+        res.send(imageUploadUrl);
+    } catch (error: any) {
+        res.status(500).send(error?.message);
     }
-);
+});
 
 // UPDATE BED BY ID
 router.patch("/update-bed/:id", isAdmin, async (req, res) => {
@@ -494,24 +518,30 @@ router.patch("/update-bed/:id", isAdmin, async (req, res) => {
     if (!isValidObjectId(id)) {
         return res.status(400).json({ message: "Invalid ID provided." });
     }
+    const newImages = req.body.images;
 
     try {
-        const updatedData = await beds.findByIdAndUpdate(
-            id,
-            {
-                name: req.body.name,
-                description: req.body.description,
-                categories: Array.isArray(req.body.categories)
-                    ? req.body.categories
-                    : undefined,
-                isDraft: req.body.isDraft,
-                images: req.body.images,
-                slug: req.body.slug,
-            },
-            {
-                new: true,
-            }
+        const updatedData = await beds.findByIdAndUpdate(id, {
+            name: req.body.name,
+            description: req.body.description,
+            categories: Array.isArray(req.body.categories)
+                ? req.body.categories
+                : undefined,
+            isDraft: req.body.isDraft,
+            images: req.body.images,
+            slug: req.body.slug,
+        });
+
+        const oldImages = updatedData?.images || [];
+
+        const deletedImages = oldImages.filter(
+            (image: any) => !newImages.includes(image)
         );
+
+        if (deletedImages.length > 0) {
+            await deleteImages(deletedImages, "../uploads/beds");
+        }
+
         res.json({ message: "Bed Updated Succesfully", data: updatedData });
     } catch (error: any) {
         res.status(500).send(error);

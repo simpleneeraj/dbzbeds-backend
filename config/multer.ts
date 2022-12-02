@@ -1,23 +1,15 @@
-import path from "path";
+// import path from "path";
 import { Request } from "express";
 import multer, { FileFilterCallback } from "multer";
-import * as fs from "fs";
+// import * as fs from "fs";
 
-export const uploadPath = path.join(__dirname, "../", "uploads");
+// export const uploadPath = path.join(__dirname, "../", "uploads");
 
-if (!fs.existsSync(uploadPath)) {
-    fs.mkdirSync(uploadPath, { recursive: true });
-}
+// if (!fs.existsSync(uploadPath)) {
+//     fs.mkdirSync(uploadPath, { recursive: true });
+// }
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, uploadPath); // use ./public for herokuWeb and /tmp for Vercel
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + "-" + file.originalname);
-    },
-});
-
+const storage = multer.memoryStorage();
 const fileFilter = function (
     req: Request,
     file: Express.Multer.File,

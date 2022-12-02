@@ -19,8 +19,8 @@ export const createOrderController = async (req: Request, res: Response) => {
     try {
         const order = await createOrderService(req.body);
         res.status(201).json({ order });
-    } catch (error) {
-        res.status(400).json({ error });
+    } catch (error: any) {
+        res.status(400).json({ error: error?.message });
     }
 };
 
