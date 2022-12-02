@@ -31,17 +31,19 @@ router.post("/update-size", async (req, res) => {
 });
 
 router.get("/check-slug/:slug", async (req, res) => {
-    const { slug } = req.query as any;
+    const { slug } = req.params as any;
     try {
         const checkSlug = await beds.findOne({ slug });
 
         if (checkSlug) {
             res.json({
-                message: "Slug already exists",
+                success: false,
+                message: "Slug already exists, Dont Use It.",
             });
         } else {
             res.json({
-                message: "Slug is available",
+                success: true,
+                message: "You Can Use This Slug",
             });
         }
     } catch (error: any) {
