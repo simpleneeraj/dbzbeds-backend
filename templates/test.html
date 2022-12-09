@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <textarea
+    id="text"
+    ></textarea>
+
+    <script>
+        const text = document.getElementById('text');
+
+
+        //set text value and dont allow enter if text contains symbol
+        text.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (text.value.includes('@')) {
+                    console.log('contains @');
+                } else {
+                    console.log('does not contain @');
+                }
+            }
+        });
+
+        text.removeEventListener("keydown", null)
+        text.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (text.value.includes('@')) {
+                    console.log('does not contain @');
+
+                } else {
+                    console.log('contains @');
+                    
+                }
+            }
+        });
+      
+
+
+
+    </script>
+    
+</body>
+</html>

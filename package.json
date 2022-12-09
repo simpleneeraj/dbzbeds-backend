@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "api": "^5.0.4",
     "bcrypt": "^5.1.0",
     "chalk": "^5.0.1",
     "cloudinary": "^1.30.1",
