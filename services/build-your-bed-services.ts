@@ -1,3 +1,4 @@
+import accessoriesIcons from "../models/accessoriesIcons";
 import buildYourBed from "../models/buildYourBed";
 import buildYourBedColorVariants from "../models/buildYourBedColorVariants";
 import buildYourBedVariants from "../models/buildYourBedVariants";
@@ -92,6 +93,32 @@ export const getBuildYourBeds = async () => {
   return beds;
 };
 
+export const getBuildYourBedVariants = async (
+  id: string,
+  populate?: string
+) => {
+  const bed = await buildYourBedVariants
+    .findOne({ _id: id as any })
+    .populate(populate || "")
+    .lean();
+  return bed;
+};
+
+export const getBuildYourBedVariantsWithColor = async (id: string) => {
+  const bed = await buildYourBedColorVariants
+    .findOne({ _id: id as any })
+    .lean();
+  return bed;
+};
+
+export const getAllBuildYourBedVariantsWithColor = async (id: string) => {
+  const bed = await buildYourBedVariants
+    .findOne({ _id: id as any })
+    .populate("colors")
+    .lean();
+  return bed;
+};
+
 export const updateBuildYourBed = async (
   id: string,
   payload: BuildYourBedPayload
@@ -140,6 +167,7 @@ export const deleteBuildYourBedVariants = async (id: string) => {
   const BedVarient = await buildYourBedVariants.findByIdAndDelete(id);
   return BedVarient;
 };
+
 export const deleteBuildYourBedVariantsWithColor = async (id: string) => {
   const bedFind = await buildYourBedColorVariants.findById(id).lean();
   if (!bedFind) {
@@ -147,4 +175,52 @@ export const deleteBuildYourBedVariantsWithColor = async (id: string) => {
   }
   const BedColorVarient = await buildYourBedColorVariants.findByIdAndDelete(id);
   return BedColorVarient;
+};
+
+export const getBuildYourBedBySize = async (size: string) => {
+  const getCurrentSizeBed = (await buildYourBed
+    .findOne({ $arrayElemAt: ["variants", 0] })
+    .populate({
+      path: "variants.0",
+      populate: {
+        path: "colors",
+        populate: {
+          path: "headboard.name storage.name feet.name mattress.name",
+          select: "label value image",
+        },
+      },
+      match: { isDraft: { $ne: true } },
+    })
+    .lean()) as any;
+
+  await getCurrentSizeBed?.variants?.map(async (item: any) => {
+    item.colors.map(async (color: any) => {
+      const Coloricon = (await accessoriesIcons
+        .findOne({
+          value: color.color,
+        })
+        .lean()) as any;
+
+      color.color = await Coloricon;
+    });
+  });
+
+  getCurrentSizeBed.availabeSizes = await Promise.all(
+    getCurrentSizeBed?.variants?.map(async (item: any) => {
+      const icon = (await accessoriesIcons
+        .findOne({
+          value: item.size,
+        })
+        .lean()) as any;
+
+      if (icon) {
+        icon.price = item?.price?.salePrice;
+      }
+      return icon;
+    })
+  );
+
+  // getCurrentSizeBed.variants = await [getCurrentSizeBed.variants[0]];
+
+  return getCurrentSizeBed;
 };
