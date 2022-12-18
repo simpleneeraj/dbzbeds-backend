@@ -181,7 +181,7 @@ export const getBuildYourBedBySize = async (size: string) => {
   const getCurrentSizeBed = (await buildYourBed
     .findOne({ $arrayElemAt: ["variants", 0] })
     .populate({
-      path: "variants.0",
+      path: "variants",
       populate: {
         path: "colors",
         populate: {
@@ -189,24 +189,33 @@ export const getBuildYourBedBySize = async (size: string) => {
           select: "label value image",
         },
       },
-      match: { isDraft: { $ne: true } },
+      match: { size, isDraft: { $ne: true } },
     })
     .lean()) as any;
 
+  const getAllbedSizes = (await buildYourBed
+    .findOne({})
+    .populate({
+      path: "variants",
+      select: "size -_id price",
+      match: { isDraft: { $ne: true } },
+    })
+    .lean()) as any;
+  console.log({ getAllbedSizes });
+
   await getCurrentSizeBed?.variants?.map(async (item: any) => {
-    item.colors.map(async (color: any) => {
+    item?.colors?.map(async (color: any) => {
       const Coloricon = (await accessoriesIcons
         .findOne({
           value: color.color,
         })
         .lean()) as any;
-
       color.color = await Coloricon;
     });
   });
 
   getCurrentSizeBed.availabeSizes = await Promise.all(
-    getCurrentSizeBed?.variants?.map(async (item: any) => {
+    getAllbedSizes?.variants?.map(async (item: any) => {
       const icon = (await accessoriesIcons
         .findOne({
           value: item.size,
