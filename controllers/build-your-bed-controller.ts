@@ -4,8 +4,12 @@ import {
   createBuildYourBedVariants,
   createBuildYourBedVariantsWithColor,
   deleteBuildYourBed,
+  getAllBuildYourBedVariantsWithColor,
   getBuildYourBed,
+  getBuildYourBedBySize,
   getBuildYourBeds,
+  getBuildYourBedVariants,
+  getBuildYourBedVariantsWithColor,
   updateBuildYourBed,
 } from "../services/build-your-bed-services";
 
@@ -42,12 +46,57 @@ export const getBuildYourBedController = async (
   }
 };
 
+export const getBuildYourBedBySizeController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const size = req.params.size;
+    const bed = await getBuildYourBedBySize(size);
+    res.status(200).json(bed);
+  } catch (error: any) {
+    res.status(400).json({
+      message: error.message,
+    });
+  }
+};
+
 export const getBuildYourBedsController = async (
   req: Request,
   res: Response
 ) => {
   try {
     const beds = await getBuildYourBeds();
+    res.status(200).json(beds);
+  } catch (error: any) {
+    res.status(400).json({
+      message: error.message,
+    });
+  }
+};
+
+export const getBuildYourBedVariantsController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const id = req.params.id;
+    const beds = await getBuildYourBedVariants(id);
+    res.status(200).json(beds);
+  } catch (error: any) {
+    res.status(400).json({
+      message: error.message,
+    });
+  }
+};
+
+export const getBuildYourBedVariantsWithColorController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const id = req.params.id;
+    const beds = await getAllBuildYourBedVariantsWithColor(id);
     res.status(200).json(beds);
   } catch (error: any) {
     res.status(400).json({
