@@ -1,5 +1,4 @@
 import { Document, model, Schema } from "mongoose";
-import { BedColorVarient } from "./buildYourBedColorVariants";
 
 export interface BedVarient extends Document {
   _id: string;
