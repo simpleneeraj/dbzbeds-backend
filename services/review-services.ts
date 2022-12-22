@@ -57,6 +57,24 @@ export const getReviewsService = async () => {
   }
 };
 
+export const getReviewsByProductIdAdminService = async (id: string) => {
+  try {
+    const allReviews = await reviews.find({ productId: id });
+    return allReviews;
+  } catch (error: any) {
+    throw new Error(error?.message);
+  }
+};
+
+export const getReviewsByProductIdService = async (id: string) => {
+  try {
+    const allReviews = await reviews.find({ productId: id, isApproved: true });
+    return allReviews;
+  } catch (error: any) {
+    throw new Error(error?.message);
+  }
+};
+
 export const deleteReviewService = async (id: string) => {
   try {
     const review = await reviews.findByIdAndDelete(id);
