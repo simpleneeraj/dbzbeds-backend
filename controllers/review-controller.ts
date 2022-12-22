@@ -9,6 +9,7 @@ import {
 } from "../services/review-services";
 
 export const createReviewController = async (req: Request, res: Response) => {
+  console.log('SIMPLE', req.body)
   try {
     const { name, email, review, images, ratings = 1, productId } = req.body;
 

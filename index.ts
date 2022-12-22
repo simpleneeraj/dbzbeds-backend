@@ -12,6 +12,7 @@ import orderRoutes from "./routes/order";
 import bedsRoutes from "./routes/fileroutes";
 import headboardRoutes from "./routes/headboard";
 import buildYourBedRoutes from "./routes/build-your-bed";
+import reviewsRoutes from "./routes/reviews";
 import { Server, Socket } from "socket.io";
 import { createServer } from "http";
 import { getOrderByIdService } from "./services/order-services";
@@ -64,10 +65,12 @@ app.get("/api", (req, res) => {
 
 app.use("/api/user", userRoutes);
 app.use("/api/auth", authRoutes);
+
 app.use("/api/beds", bedRoutes);
 app.use("/api/icons", iconRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/order", orderRoutes);
+app.use("/api/reviews", reviewsRoutes);
 app.use("/api/headboard", headboardRoutes);
 app.use("/api/build-your-bed", buildYourBedRoutes);
 
