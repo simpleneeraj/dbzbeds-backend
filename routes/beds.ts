@@ -229,6 +229,45 @@ router.get("/get-bed-by-size/:size", async (req, res) => {
 
   console.log("called");
   try {
+    if (size === "all") {
+      const findBeds = (await beds
+        .find({
+          //check if size is available in variants AFTER POPULATING
+          isDraft: { $ne: true },
+        })
+        .populate({
+          path: "variants",
+          populate: {
+            path: "accessories.color.name accessories.headboard.name accessories.storage.name accessories.feet.name accessories.mattress.name",
+            select: "label value image",
+          },
+          match: { isDraft: { $ne: true } },
+        })
+        .sort({ createdAt: -1 })
+        .limit(Number(limit))
+        .skip(Number(limit) * (Number(page) - 1))
+        .lean()) as any;
+
+      const totalBedsCount = await beds.countDocuments({
+        isDraft: { $ne: true },
+      });
+      const pages = Math.ceil(Number(totalBedsCount) / Number(limit));
+
+      findBeds.map((bed: any) => {
+        if (bed.variants.length === 0) {
+          return null;
+        } else {
+          return bed;
+        }
+      });
+
+      return res.json({
+        data: findBeds,
+        totalPages: pages,
+        nextPage: Number(page) < pages ? Number(page) + 1 : null,
+      });
+    }
+
     const findBeds = (await beds
       .find({
         //check if size is available in variants AFTER POPULATING
@@ -255,7 +294,8 @@ router.get("/get-bed-by-size/:size", async (req, res) => {
       }
     });
 
-    //Get Total Pages
+    //Get Total Pages 45
+
     const totalBedsCount = await beds.countDocuments({
       "variants.isDraft": { $ne: true },
       categories: { $elemMatch: { $eq: category } },
