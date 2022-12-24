@@ -4,6 +4,7 @@ import {
   createReviewService,
   deleteReviewService,
   denyReviewService,
+  getPaginationsService,
   getReviewsAdminService,
   getReviewsByProductIdAdminService,
   getReviewsByProductIdService,
@@ -26,6 +27,7 @@ export const createReviewController = async (req: Request, res: Response) => {
       ratings,
       productId,
     });
+
     res.status(200).json(createReview);
   } catch (error: any) {
     res.status(400).json({
@@ -39,8 +41,14 @@ export const getReviewsAdminController = async (
   res: Response
 ) => {
   try {
+    const { limit = 10, page = 1 } = req.query;
     const reviews = await getReviewsAdminService();
-    res.status(200).json({ reviews });
+    const pagination = await getPaginationsService(
+      {},
+      Number(limit),
+      Number(page)
+    );
+    res.status(200).json({ reviews, ...pagination });
   } catch (error: any) {
     res.status(400).json({
       message: error.message,
@@ -54,8 +62,14 @@ export const getReviewsByProductIdAdminController = async (
 ) => {
   try {
     const id = req.params.id;
+    const { limit = 10, page = 1 } = req.query;
     const reviews = await getReviewsByProductIdAdminService(id);
-    res.status(200).json(reviews);
+    const pagination = await getPaginationsService(
+      { _id: id },
+      Number(limit),
+      Number(page)
+    );
+    res.status(200).json({ reviews, ...pagination });
   } catch (error: any) {
     res.status(400).json({
       message: error.message,
@@ -69,8 +83,15 @@ export const getReviewsByProductIdController = async (
 ) => {
   try {
     const id = req.params.id;
+    const { limit = 10, page = 1 } = req.query;
+
     const reviews = await getReviewsByProductIdService(id);
-    res.status(200).json({ reviews });
+    const pagination = await getPaginationsService(
+      { _id: id, isApproved: true },
+      Number(limit),
+      Number(page)
+    );
+    res.status(200).json({ reviews, ...pagination });
   } catch (error: any) {
     res.status(400).json({
       message: error.message,
@@ -80,8 +101,14 @@ export const getReviewsByProductIdController = async (
 
 export const getReviewsController = async (req: Request, res: Response) => {
   try {
+    const { limit = 10, page = 1 } = req.query;
     const reviews = await getReviewsService();
-    res.status(200).json(reviews);
+    const pagination = await getPaginationsService(
+      { isApproved: true },
+      Number(limit),
+      Number(page)
+    );
+    res.status(200).json({ reviews, ...pagination });
   } catch (error: any) {
     res.status(400).json({
       message: error.message,

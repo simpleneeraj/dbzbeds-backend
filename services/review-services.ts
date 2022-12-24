@@ -39,6 +39,23 @@ export const denyReviewService = async (id: string) => {
   }
 };
 
+export const getPaginationsService = async (
+  filters: any,
+  limit: number,
+  page: number
+) => {
+  try {
+    const reviewsCount = await reviews.countDocuments(filters);
+    const pages = Math.ceil(Number(reviewsCount) / Number(limit));
+    return {
+      totalPages: pages,
+      nextPage: Number(page) < pages ? Number(page) + 1 : null,
+    };
+  } catch (error: any) {
+    throw new Error(error?.message);
+  }
+};
+
 export const getReviewsAdminService = async () => {
   try {
     const allReviews = await reviews.find();

@@ -256,8 +256,19 @@ router.get("/get-bed-by-size/:size", async (req, res) => {
     });
 
     //Get Total Pages
-    const totalBedsCount = await beds.countDocuments({});
+    const totalBedsCount = await beds.countDocuments({
+      "variants.isDraft": { $ne: true },
+      categories: { $elemMatch: { $eq: category } },
+    });
     const pages = Math.ceil(Number(totalBedsCount) / Number(limit));
+
+    findBeds.map((bed: any) => {
+      if (bed.variants.length === 0) {
+        return null;
+      } else {
+        return bed;
+      }
+    });
 
     res.json({
       data: findBeds,
