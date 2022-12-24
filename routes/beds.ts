@@ -225,7 +225,7 @@ router.get("/get-all-beds-with-base-image-admin", async (req, res) => {
 
 router.get("/get-bed-by-size/:size", async (req, res) => {
   const { size } = req.params as any;
-  const { page = 1, limit = 20, category } = req.query;
+  const { page = 1, limit = 50, category } = req.query;
 
   console.log("called");
   try {
