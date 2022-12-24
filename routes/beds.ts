@@ -233,6 +233,8 @@ router.get("/get-bed-by-size/:size", async (req, res) => {
       const findBeds = (await beds
         .find({
           //check if size is available in variants AFTER POPULATING
+          categories: { $elemMatch: { $eq: category } },
+
           isDraft: { $ne: true },
         })
         .populate({
@@ -257,6 +259,7 @@ router.get("/get-bed-by-size/:size", async (req, res) => {
 
       const totalBedsCount = await beds.countDocuments({
         isDraft: { $ne: true },
+        categories: { $elemMatch: { $eq: category } },
       });
       const pages = Math.ceil(Number(totalBedsCount) / Number(limit));
 
