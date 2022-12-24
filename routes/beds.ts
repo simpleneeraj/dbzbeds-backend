@@ -248,6 +248,13 @@ router.get("/get-bed-by-size/:size", async (req, res) => {
         .skip(Number(limit) * (Number(page) - 1))
         .lean()) as any;
 
+      findBeds.map((bed: any) => {
+        if (bed && bed?.variants[0]?.image) {
+          bed.image = bed?.variants[0]?.image;
+          bed.price = bed?.variants[0]?.price;
+        }
+      });
+
       const totalBedsCount = await beds.countDocuments({
         isDraft: { $ne: true },
       });
