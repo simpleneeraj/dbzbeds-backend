@@ -205,13 +205,18 @@ export const getBuildYourBedBySize = async (size: string) => {
   console.log({ getAllbedSizes });
 
   await getCurrentSizeBed?.variants?.map(async (item: any) => {
-    item?.colors?.map(async (color: any) => {
-      const Coloricon = (await accessoriesIcons
-        .findOne({
-          value: color.color,
-        })
-        .lean()) as any;
-      color.color = await Coloricon;
+    await item?.colors?.map(async (color: any) => {
+      await accessoriesIcons
+        .findOne(
+          {
+            value: color.color,
+          },
+          async (err: any, data: any) => {
+            color.color = await data;
+            console.log({ err, data });
+          }
+        )
+        .clone();
     });
   });
 
