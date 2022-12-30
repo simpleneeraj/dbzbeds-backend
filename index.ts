@@ -24,6 +24,7 @@ import {
   reomveOrderIdBySocketId,
   removeActiveUser,
 } from "./services/socket-services";
+import buildYourBedColorVariants from "./models/buildYourBedColorVariants";
 
 // INITIALIZING EXPREESS
 // INITIALIZING EXPREESS

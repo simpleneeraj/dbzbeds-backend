@@ -4,6 +4,8 @@ import {
   createBuildYourBedVariants,
   createBuildYourBedVariantsWithColor,
   deleteBuildYourBed,
+  deleteBuildYourBedVariants,
+  deleteBuildYourBedVariantsWithColor,
   getAllBuildYourBedVariantsWithColor,
   getBuildYourBed,
   getBuildYourBedBySize,
@@ -11,6 +13,8 @@ import {
   getBuildYourBedVariants,
   getBuildYourBedVariantsWithColor,
   updateBuildYourBed,
+  updateBuildYourBedVariants,
+  updateBuildYourBedVariantsWithColor,
 } from "../services/build-your-bed-services";
 
 export const createBuildYourBedController = async (
@@ -105,6 +109,21 @@ export const getBuildYourBedVariantsWithColorController = async (
   }
 };
 
+export const getBuildYourBedVariantsWithColorByIdController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const id = req.params.id;
+    const beds = await getBuildYourBedVariantsWithColor(id);
+    res.status(200).json(beds);
+  } catch (error: any) {
+    res.status(400).json({
+      message: error.message,
+    });
+  }
+};
+
 export const updateBuildYourBedController = async (
   req: Request,
   res: Response
@@ -172,6 +191,80 @@ export const createBuildYourBedVariantsWithColorController = async (
     const bed = await createBuildYourBedVariantsWithColor(id, payload);
     res.status(200).json({
       message: "Bed Variants Created Successfully",
+      data: bed,
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      message: error.message,
+    });
+  }
+};
+
+export const updateBuildYourBedVariantsController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const id = req.params.id;
+    const payload = req.body;
+    const bed = await updateBuildYourBedVariants(id, payload);
+    res.status(200).json({
+      message: "Bed Updated Successfully",
+      data: bed,
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      message: error.message,
+    });
+  }
+};
+
+export const deleteBuildYourBedVariantsController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const id = req.params.id;
+    const bed = await deleteBuildYourBedVariants(id);
+    res.status(200).json({
+      message: "Bed Deleted Successfully",
+      data: bed,
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      message: error.message,
+    });
+  }
+};
+
+export const updateBuildYourBedVariantsWithColorController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const id = req.params.id;
+    const payload = req.body;
+    const bed = await updateBuildYourBedVariantsWithColor(id, payload);
+    res.status(200).json({
+      message: "Bed Updated Successfully",
+      data: bed,
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      message: error.message,
+    });
+  }
+};
+
+export const deleteBuildYourBedVariantsWithColorController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const id = req.params.id;
+    const bed = await deleteBuildYourBedVariantsWithColor(id);
+    res.status(200).json({
+      message: "Bed Deleted Successfully",
       data: bed,
     });
   } catch (error: any) {

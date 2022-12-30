@@ -107,6 +107,7 @@ export const getBuildYourBedVariants = async (
 export const getBuildYourBedVariantsWithColor = async (id: string) => {
   const bed = await buildYourBedColorVariants
     .findOne({ _id: id as any })
+    .populate("storage.name feet.name headboard.name mattress.name")
     .lean();
   return bed;
 };
