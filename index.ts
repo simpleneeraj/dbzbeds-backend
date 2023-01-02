@@ -13,6 +13,8 @@ import bedsRoutes from "./routes/fileroutes";
 import headboardRoutes from "./routes/headboard";
 import buildYourBedRoutes from "./routes/build-your-bed";
 import reviewsRoutes from "./routes/reviews";
+import couponsRoutes from "./routes/coupon";
+
 import { Server, Socket } from "socket.io";
 import { createServer } from "http";
 import { getOrderByIdService } from "./services/order-services";
@@ -74,6 +76,7 @@ app.use("/api/order", orderRoutes);
 app.use("/api/reviews", reviewsRoutes);
 app.use("/api/headboard", headboardRoutes);
 app.use("/api/build-your-bed", buildYourBedRoutes);
+app.use("/api/coupons", couponsRoutes);
 
 app.use("/api/bedsMultiple", bedsRoutes);
 
