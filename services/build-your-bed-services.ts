@@ -204,21 +204,24 @@ export const getBuildYourBedBySize = async (size: string) => {
     .lean()) as any;
   console.log({ getAllbedSizes });
 
-  await getCurrentSizeBed?.variants?.map(async (item: any) => {
-    await item?.colors?.map(async (color: any) => {
-      await accessoriesIcons
-        .findOne(
-          {
-            value: color.color,
-          },
-          async (err: any, data: any) => {
-            color.color = await data;
-            console.log({ err, data });
+  await Promise.all(
+    getCurrentSizeBed?.variants?.map(async (item: any) => {
+      await Promise.all(
+        item?.colors?.map(async (color: any) => {
+          const icon = (await accessoriesIcons
+            .findOne({
+              value: color.color,
+            })
+            .lean()) as any;
+
+          if (icon) {
+            color.color = icon;
           }
-        )
-        .clone();
-    });
-  });
+          return icon;
+        })
+      );
+    })
+  );
 
   getCurrentSizeBed.availabeSizes = await Promise.all(
     getAllbedSizes?.variants?.map(async (item: any) => {
