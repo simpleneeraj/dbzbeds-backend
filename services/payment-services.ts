@@ -12,21 +12,23 @@ export const createCheckoutSessionService = async (
   line_items: any,
   couponId: string
 ) => {
-  const coupon = await getCouponByIdService(couponId);
-
-  if (coupon) {
-    line_items?.map((item: any) => {
-      return (item.price_data.unit_amount =
-        getDiscountCouponPrice({
-          percent: coupon.percent,
-          max: coupon.max,
-          price: item.price_data.unit_amount,
-        }) * 100);
-    });
-  } else {
-    line_items?.map((item: any) => {
-      return (item.price_data.unit_amount = item.price_data.unit_amount * 100);
-    });
+  if (couponId) {
+    const coupon = await getCouponByIdService(couponId);
+    if (coupon) {
+      line_items?.map((item: any) => {
+        return (item.price_data.unit_amount =
+          getDiscountCouponPrice({
+            percent: coupon.percent,
+            max: coupon.max,
+            price: item.price_data.unit_amount,
+          }) * 100);
+      });
+    } else {
+      line_items?.map((item: any) => {
+        return (item.price_data.unit_amount =
+          item.price_data.unit_amount * 100);
+      });
+    }
   }
 
   const session = await stripeClient.checkout.sessions.create({

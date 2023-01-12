@@ -9,10 +9,10 @@ export const getDiscountCouponPrice = ({
   max,
   price,
 }: IDiscountProps) => {
-  const discountAmount = (percent / 100) * price;
+  const discountAmount = (price * percent) / 100;
   if (discountAmount > max) {
     return price - max;
   } else {
-    return discountAmount;
+    return price - discountAmount;
   }
 };

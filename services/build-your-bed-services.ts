@@ -199,7 +199,6 @@ export const getBuildYourBedBySize = async (size: string) => {
       match: { isDraft: { $ne: true } },
     })
     .lean()) as any;
-  console.log({ getAllbedSizes });
 
   await Promise.all(
     getCurrentSizeBed?.variants?.map(async (item: any) => {
@@ -255,6 +254,7 @@ export const getBuildYourBedByVariantIdAndColorId = async (
     })
     .lean()) as any;
 
+  if (!getCurrentSizeBed) return;
   const getCurrentColorBed = await getCurrentSizeBed?.colors?.find(
     (item: any) => item._id == colorId
   );
