@@ -97,10 +97,7 @@ export const getBuildYourBedVariants = async (
   id: string,
   populate?: string
 ) => {
-  const bed = await buildYourBedVariants
-    .findOne({ _id: id as any })
-    .populate(populate || "")
-    .lean();
+  const bed = await buildYourBedVariants.findOne({ _id: id as any }).lean();
   return bed;
 };
 
@@ -241,4 +238,30 @@ export const getBuildYourBedBySize = async (size: string) => {
   // getCurrentSizeBed.variants = await [getCurrentSizeBed.variants[0]];
 
   return getCurrentSizeBed;
+};
+
+export const getBuildYourBedByVariantIdAndColorId = async (
+  _id: string,
+  colorId: string
+) => {
+  const getCurrentSizeBed = (await buildYourBedVariants
+    .findOne({ _id })
+    .populate({
+      path: "colors",
+      populate: {
+        path: "headboard.name storage.name feet.name mattress.name",
+        select: "label value image",
+      },
+    })
+    .lean()) as any;
+
+  const getCurrentColorBed = await getCurrentSizeBed?.colors?.find(
+    (item: any) => item._id == colorId
+  );
+
+  return {
+    ...getCurrentColorBed,
+    price: getCurrentSizeBed?.price?.salePrice,
+    size: getCurrentSizeBed?.size,
+  };
 };

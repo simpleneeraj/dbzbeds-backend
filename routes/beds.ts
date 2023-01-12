@@ -518,7 +518,6 @@ router.get("/:id", async (req, res) => {
 });
 
 //UPLOAD NEW BED
-
 router.post("/create", isAdmin, async (req: Request, res: Response) => {
   const { name, description, categories, slug, images } = req.body;
   if (!name) {

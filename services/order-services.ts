@@ -4,13 +4,48 @@ import { orderStatusTemplate } from "../templates/order-status";
 import {
   findAccessoriesLocallyService,
   findBedVariantWithProductNameByIdService,
+  findBuildYourBedAccessoriesLocallyService,
 } from "./accessories-services";
+import { getBuildYourBedByVariantIdAndColorId } from "./build-your-bed-services";
+import { getCouponByIdService } from "./coupon-services";
 import { sendEmailWithTemplate } from "./email-services";
 
 //create order
 export const createOrderService = async (order: any) => {
-  if (order?.orderItems && order?.orderItems?.length > 0) {
-    const test = order.orderItems.map(async (orderItem: any) => {
+  const allOrderItems = order.orderItems.map(async (orderItem: any) => {
+    if (orderItem.type == "BUILD_YOUR_BED") {
+      const bedSizeVariant = await getBuildYourBedByVariantIdAndColorId(
+        orderItem._id,
+        orderItem.color
+      );
+
+      if (bedSizeVariant) {
+        const data = findBuildYourBedAccessoriesLocallyService(
+          bedSizeVariant as any,
+          orderItem?.headboard,
+          orderItem?.feet,
+          orderItem?.mattress,
+          orderItem?.storage
+        );
+
+        return {
+          name: data?.name,
+          type: "BUILD_YOUR_BED",
+          categories: data?.categories,
+          image: data?.variant?.image,
+          quantity: orderItem?.quantity,
+          price: data?.totalPrice * Number(orderItem?.quantity),
+          accessories: {
+            size: data?.size,
+            headboard: data?.headboard,
+            mattress: data?.mattress,
+            color: data?.color,
+            storage: data?.storage,
+            feet: data?.feet,
+          },
+        };
+      }
+    } else {
       const bedVariantWithProductName =
         await findBedVariantWithProductNameByIdService(
           orderItem?.bedId,
@@ -26,13 +61,12 @@ export const createOrderService = async (order: any) => {
           orderItem?.color,
           orderItem?.storage
         );
-
-        console.log({ total: data?.totalPrice });
-
+        // console.log({ total: data?.totalPrice });
         return {
           name: data?.name,
           categories: data?.categories,
           image: data?.variant?.image,
+          type: orderItem?.type,
           quantity: orderItem?.quantity,
           price: data?.totalPrice * Number(orderItem?.quantity),
           accessories: {
@@ -45,18 +79,35 @@ export const createOrderService = async (order: any) => {
           },
         };
       }
-    });
+    }
+  });
 
-    order.orderItems = await Promise.all(test);
+  order.orderItems = await Promise.all(allOrderItems);
+  order.totalPrice = order.orderItems.reduce(
+    (acc: any, item: any) => acc + item?.price,
+    0
+  );
 
-    order.totalPrice = order.orderItems.reduce(
-      (acc: any, item: any) => acc + item.price,
-      0
-    );
+  if (order.coupon) {
+    const coupon = await getCouponByIdService(order.coupon);
 
-    const newOrder = await Order.create(order);
-    return newOrder;
+    if (coupon) {
+      const discountPercentage = coupon?.percent;
+      const maxDiscount = coupon?.max;
+      const discountAmount = (discountPercentage / 100) * order.totalPrice;
+      order.coupon = coupon._id;
+
+      if (discountAmount > maxDiscount) {
+        order.totalPrice = order.totalPrice - maxDiscount;
+      } else {
+        order.totalPrice = discountAmount;
+      }
+    }
   }
+
+  const newOrder = new Order(order);
+  await newOrder.save();
+  return newOrder;
 };
 
 //get order by id
